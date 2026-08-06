@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HKDSE Speaking Hub</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.6;
+      background-color: #f4f4f9;
+    }
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; margin-top: 0; }
+    .question-box {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #1a73e8;
+      margin: 20px 0;
+      min-height: 60px;
+    }
+    .timer {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #d93025;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover { background-color: #1557b0; }
+    button:disabled { background-color: #ccc; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>HKDSE Part B Speaking Hub</h1>
+    
+    <div id="question" class="question-box">按下下方按鈕開始抽題！</div>
+    <div id="timer" class="timer">01:00</div>
+
+    <button onclick="getRandomQuestion()">隨機抽題</button>
+    <button id="startBtn" onclick="startTimer()">開始 1 分鐘倒數</button>
+  </div>
+
+  <script>
+    // 題目資料庫
+    const questions = [
+      "What job would you like to do in the future?",
+      "Do you think university education is essential for every student?",
+      "How can young people in Hong Kong lead a healthier lifestyle?",
+      "Should schools abolish homework during summer holidays?"
+    ];
+
+    let timerInterval;
+    let timeLeft = 60;
+
+    function getRandomQuestion() {
+      const randomIndex = Math.floor(Math.random() * questions.length);
+      document.getElementById("question").innerText = questions[randomIndex];
+      resetTimer();
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      document.getElementById("startBtn").disabled = true;
+      
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert("時間到！Times up!");
+          document.getElementById("startBtn").disabled = false;
+        }
+      }, 1000);
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timeLeft = 60;
+      updateTimerDisplay();
+      document.getElementById("startBtn").disabled = false;
+    }
+
+    function updateTimerDisplay() {
+      const seconds = timeLeft < 10 ? '0' + timeLeft : timeLeft;
+      document.getElementById("timer").innerText = `00:${seconds}`;
+    }
+  </script>
+
+</body>
+</html>
