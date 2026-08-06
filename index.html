@@ -191,28 +191,8 @@
                             <span class="flex items-center"><i class="fa-solid fa-check-circle text-brand-500 mr-1.5"></i>Official HKDSE Past Paper Question</span>
                         </div>
                     </div>
-
-                    <!-- Theme Vocabulary Box -->
-                    <div class="bg-slate-800/60 rounded-2xl p-6 border border-slate-700/60 shadow-xl">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-base font-bold text-slate-100 flex items-center">
-                                <i class="fa-solid fa-book-bookmark text-emerald-400 mr-2"></i>
-                                5 Theme-Based Vocabulary & Phrases
-                            </h3>
-                            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-md font-semibold">Level C1/C2</span>
-                        </div>
-                        <p class="text-xs text-slate-400 mb-4">Boost your response marks with these topic-specific key terms and expressions:</p>
-                        
-                        <div id="vocab-list-container" class="space-y-3">
-                            <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 text-sm italic text-center">
-                                Draw a question to generate topic-relevant vocabulary and phrases.
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Right: Timer & Structure Reminder (5 cols) -->
+                    
+                    <!-- Right: Timer & Structure Reminder (5 cols) -->
                 <div class="lg:col-span-5 flex flex-col space-y-6">
                     
                     <!-- 1-Minute Countdown Timer Card -->
@@ -259,6 +239,48 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Audio Recorder Box (Bonus feature for self-practice) -->
+                    <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 shadow-xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                                <i class="fa-solid fa-microphone text-rose-400 mr-2"></i>Record & Self-Evaluate
+                            </h3>
+                            <span id="rec-status" class="text-[11px] text-slate-400">Idle</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button id="rec-btn" onclick="toggleRecording()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-circle"></i>
+                                <span id="rec-btn-text">Record Voice</span>
+                            </button>
+                            <audio id="audio-playback" controls class="h-8 flex-1 rounded-lg hidden"></audio>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+                    <!-- Theme Vocabulary Box -->
+                    <div class="bg-slate-800/60 rounded-2xl p-6 border border-slate-700/60 shadow-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold text-slate-100 flex items-center">
+                                <i class="fa-solid fa-book-bookmark text-emerald-400 mr-2"></i>
+                                5 Theme-Based Vocabulary & Phrases
+                            </h3>
+                            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-md font-semibold">Level C1/C2</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-4">Boost your response marks with these topic-specific key terms and expressions:</p>
+                        
+                        <div id="vocab-list-container" class="space-y-3">
+                            <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 text-sm italic text-center">
+                                Draw a question to generate topic-relevant vocabulary and phrases.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                
 
                     <!-- Structure Reminder Card -->
                     <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 shadow-xl space-y-3">
@@ -302,26 +324,7 @@
                         </div>
                     </div>
 
-                    <!-- Audio Recorder Box (Bonus feature for self-practice) -->
-                    <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 shadow-xl space-y-3">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                <i class="fa-solid fa-microphone text-rose-400 mr-2"></i>Record & Self-Evaluate
-                            </h3>
-                            <span id="rec-status" class="text-[11px] text-slate-400">Idle</span>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <button id="rec-btn" onclick="toggleRecording()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5">
-                                <i class="fa-solid fa-circle"></i>
-                                <span id="rec-btn-text">Record Voice</span>
-                            </button>
-                            <audio id="audio-playback" controls class="h-8 flex-1 rounded-lg hidden"></audio>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
+                    
 
         </section>
 
