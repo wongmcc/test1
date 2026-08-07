@@ -2935,58 +2935,92 @@
         }
 
 function filterQuestionBank() {
-            const searchText = document.getElementById('bank-search-input').value.toLowerCase().trim();
-            const selectedYear = document.getElementById('bank-year-select').value;
-            const selectedLevel = document.getElementById('bank-level-select').value;
+  const query = (document.getElementById('bank-search-input').value || '').trim().toLowerCase();
+  const yearFilter = document.getElementById('bank-year-select').value;
+  const levelFilter = document.getElementById('bank-level-select').value;
+  const container = document.getElementById('bank-year-containers');
+  const countBadge = document.getElementById('bank-count-badge');
 
-            let visibleCount = 0;
-            const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
+  container.innerHTML = '';
+  let totalMatches = 0;
 
-            years.forEach(yr => {
-                const yearBlock = document.getElementById(`bank-year-block-${yr}`);
-                if (!yearBlock) return;
+  // Helper for level filtering (if you use set numbers like "1.1", adjust rules here)
+  const levelMatches = (setName) => {
+    if (!levelFilter || levelFilter === 'ALL') return true;
+    // Example: treat sets starting with 1-3 as easy, 4-6 medium, 7-8 challenging
+    const prefix = parseInt((setName || '').split('.')[0], 10);
+    if (isNaN(prefix)) return true;
+    if (levelFilter === 'easy') return prefix >= 1 && prefix <= 3;
+    if (levelFilter === 'medium') return prefix >= 4 && prefix <= 6;
+    if (levelFilter === 'challenging') return prefix >= 7 && prefix <= 8;
+    return true;
+  };
 
-                let yearHasMatch = false;
+  // Group data by year (preserve order)
+  const years = [...new Set(RAW_DATA.map(d => d.year))].sort((a,b)=>a-b);
 
-                // Check year filter
-                if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
-                    yearBlock.classList.add('hidden');
-                    return;
-                }
+  years.forEach(year => {
+    if (yearFilter !== 'ALL' && String(year) !== String(yearFilter)) return;
 
-                const questionCards = yearBlock.querySelectorAll('[data-question-id]');
-                questionCards.forEach(card => {
-                    const qText = card.getAttribute('data-question-text');
-                    const qLevel = card.getAttribute('data-level');
+    // collect sets in this year that have matching questions (or match on set/topic)
+    const setsInYear = RAW_DATA.filter(d => d.year === year)
+      .filter(d => levelMatches(d.set));
 
-                    const textMatch = (searchText === '' || qText.includes(searchText));
-                    const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
+    const matchedSets = setsInYear.map(setItem => {
+      const setTextMatch = query === '' ||
+        (setItem.topic && setItem.topic.toLowerCase().includes(query)) ||
+        (setItem.set && setItem.set.toLowerCase().includes(query));
 
+      const matchedQuestions = query === ''
+        ? setItem.questions.slice() // copy all when no query
+        : setItem.questions.filter(q => q.toLowerCase().includes(query));
 
-                    if (textMatch && levelMatch) {
-                        card.classList.remove('hidden');
-                        yearHasMatch = true;
-                        visibleCount++;
-                    } else {
-                        card.classList.add('hidden');
-                    }
-                });
+      // If topic/set matched but no question matched, still show only the questions that match the topic if you prefer;
+      // here we include the set only if it has at least one matching question OR the set/topic itself matched.
+      if (matchedQuestions.length > 0 || setTextMatch) {
+        // if topic/set matched but no individual question matched, we show zero questions (you can change to show all)
+        return { ...setItem, matchedQuestions };
+      }
+      return null;
+    }).filter(Boolean);
 
-                if (yearHasMatch) {
-                    yearBlock.classList.remove('hidden');
-                    // Automatically open accordion if searching
-                    if (searchText !== '' || selectedLevel !== 'ALL') {
-                        document.getElementById(`accordion-body-${yr}`).classList.remove('hidden');
-                        document.getElementById(`accordion-icon-${yr}`).classList.add('rotate-180');
-                    }
-                } else {
-                    yearBlock.classList.add('hidden');
-                }
-                
-            });
+    if (matchedSets.length > 0) {
+      const yearBlock = document.createElement('div');
+      yearBlock.className = 'space-y-3';
+      yearBlock.innerHTML = `<h3 class="text-sm font-bold text-slate-200">Year ${year}</h3>`;
 
-            updateBankCountBadge(visibleCount);
-        }
+      matchedSets.forEach(s => {
+        // only render the questions that actually matched (if query non-empty). If topic matched but no question matched,
+        // we can optionally render an informational note — currently it will render zero questions for that set.
+        const setContainer = document.createElement('div');
+        setContainer.className = 'p-3 rounded-xl bg-slate-900/80 border border-slate-700';
+
+        const qList = (s.matchedQuestions && s.matchedQuestions.length)
+          ? `<ul class="list-disc list-inside text-slate-300 space-y-1">${s.matchedQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul>`
+          : `<div class="text-xs text-slate-500 italic">No individual question matched, but the set/topic matched.</div>`;
+
+        setContainer.innerHTML = `<div class="text-xs font-semibold text-slate-200 mb-1">${escapeHtml(s.set)} — ${escapeHtml(s.topic)}</div>` + qList;
+        yearBlock.appendChild(setContainer);
+
+        totalMatches += (s.matchedQuestions ? s.matchedQuestions.length : 0);
+      });
+
+      container.appendChild(yearBlock);
+    }
+  });
+
+  countBadge.textContent = `Showing: ${totalMatches} Questions`;
+}
+
+// small helper to avoid injecting raw HTML from data
+function escapeHtml(str = '') {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 
         function updateBankCountBadge(count) {
