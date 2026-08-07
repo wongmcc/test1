@@ -2967,7 +2967,6 @@ function filterQuestionBank() {
     // Strict: keep a set only if at least one question in it matches the query
     const matchedSets = [];
     setsInYear.forEach(setItem => {
-      // build question objects with index so we can show Q1/Q2 and difficulty
       const qs = setItem.questions.map((q, i) => ({ text: q, index: i + 1 }));
 
       const matchedQuestions = query === ''
@@ -2992,7 +2991,7 @@ function filterQuestionBank() {
         // header: set id and topic (preserve style)
         const headerHTML = `<div class="text-xs font-semibold text-slate-200 mb-2">${escapeHtml(s.set)} — ${escapeHtml(s.topic)}</div>`;
 
-        // questions: show only matched questions, each with Q# and difficulty badge
+        // questions: show only matched questions, each with Q# and difficulty badge + Practice button
         const questionsHTML = s.matchedQuestions.map(qObj => {
           const idx = qObj.index;
           let diffLabel = 'Easy';
@@ -3013,8 +3012,12 @@ function filterQuestionBank() {
                   ${escapeHtml(qObj.text)}
                 </div>
               </div>
-              <div class="ml-3 flex-shrink-0">
+              <div class="ml-3 flex items-center gap-3">
                 <span class="text-[11px] px-2 py-0.5 rounded-md font-semibold ${diffClasses}">${escapeHtml(diffLabel)}</span>
+                <button class="practice-btn px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-xs rounded-lg text-white" 
+                        data-year="${s.year}" data-set="${escapeHtml(s.set)}" data-index="${idx}">
+                  Practice
+                </button>
               </div>
             </div>
           `;
@@ -3031,17 +3034,57 @@ function filterQuestionBank() {
   });
 
   countBadge.textContent = `Showing: ${totalMatches} Questions`;
+
+  // attach practice handlers for the newly created buttons
+  attachPracticeButtons();
 }
 
-// Keep this helper in the file
-function escapeHtml(str = '') {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+// Attach click listeners to practice buttons (idempotent)
+function attachPracticeButtons() {
+  document.querySelectorAll('.practice-btn').forEach(btn => {
+    if (btn.dataset._listener === '1') return; // already attached
+    btn.addEventListener('click', () => {
+      const year = Number(btn.dataset.year);
+      const setId = btn.dataset.set;
+      const idx = parseInt(btn.dataset.index, 10);
+      // find the question text and topic from RAW_DATA
+      const setObj = RAW_DATA.find(d => d.year === year && d.set === setId);
+      if (!setObj) return;
+      const qText = setObj.questions[idx - 1] || '';
+      practiceQuestion(qText, year, setId, idx, setObj.topic);
+    });
+    btn.dataset._listener = '1';
+  });
 }
+
+// Bring a bank question into the Practice drawer (keeps the same styles)
+function practiceQuestion(text, year, setId, qIndex, topic) {
+  // Populate practice UI elements (keep same ids used elsewhere)
+  const qTextEl = document.getElementById('question-text');
+  const qTopicTag = document.getElementById('q-topic-tag');
+  const qLevelTag = document.getElementById('q-level-tag');
+  const qIdInfo = document.getElementById('q-id-info');
+  const qMetaTag = document.getElementById('q-meta-tag');
+
+  if (qTextEl) qTextEl.textContent = text || '';
+  if (qTopicTag) qTopicTag.textContent = `${topic} — Year ${year}`;
+  if (qLevelTag) qLevelTag.textContent = `Q${qIndex}`;
+  if (qIdInfo) qIdInfo.textContent = `ID: ${year}-${setId}-Q${qIndex}`;
+  if (qMetaTag) qMetaTag.textContent = 'From Bank';
+
+  // Switch to the practice tab UI if your switchTab function exists
+  if (typeof switchTab === 'function') {
+    switchTab('practice');
+  } else {
+    // fallback: show practice section and hide bank/tips if switchTab not present
+    document.getElementById('tab-practice')?.classList.remove('hidden');
+    document.getElementById('tab-bank')?.classList.add('hidden');
+    document.getElementById('tab-tips')?.classList.add('hidden');
+  }
+
+  // scroll to practice area for better UX
+  const scroll
+
         function updateBankCountBadge(count) {
             document.getElementById('bank-count-badge').innerText = `Showing: ${count} Questions`;
         }
