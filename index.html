@@ -49,6 +49,10 @@
 
     </script>
     <style>
+        .hidden {
+          display: none !important;
+        }
+
         /* Custom scrollbar for better visual depth */
         ::-webkit-scrollbar {
             width: 8px;
@@ -2965,7 +2969,6 @@ function filterQuestionBank() {
                         visibleCount++;
                     } else {
                         card.classList.add('hidden');
-                        card.classList.pop();
                     }
                 });
 
