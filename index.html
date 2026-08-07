@@ -2960,11 +2960,11 @@
 
 
                     if (textMatch && levelMatch) {
-                        card.classList.remove('hidden');
+                        card.remove('hidden');
                         yearHasMatch = true;
                         visibleCount++;
                     } else {
-                        card.classList.add('hidden');
+                        card.add('hidden');
                     }
                 });
 
@@ -2972,7 +2972,7 @@
                     yearBlock.classList.remove('hidden');
                     // Automatically open accordion if searching
                     if (searchText !== '' || selectedLevel !== 'ALL') {
-                        document.getElementById(`accordion-body-${yr}`).classList.add('hidden');
+                        document.getElementById(`accordion-body-${yr}`).classList.remove('hidden');
                         document.getElementById(`accordion-icon-${yr}`).classList.add('rotate-180');
                     }
                 } else {
