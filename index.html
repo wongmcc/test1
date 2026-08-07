@@ -2956,24 +2956,28 @@ function filterQuestionBank() {
     return true;
   };
 
-  // Preserve year order
-  const years = [...new Set(RAW_DATA.map(d => d.year))].sort((a,b)=>a-b);
+  // preserve year order
+  const years = [...new Set(RAW_DATA.map(d => d.year))].sort((a, b) => a - b);
 
   years.forEach(year => {
     if (yearFilter !== 'ALL' && String(year) !== String(yearFilter)) return;
 
     const setsInYear = RAW_DATA.filter(d => d.year === year).filter(d => levelMatches(d.set));
 
-    // For strict behaviour: keep a set only if at least one question matches the query.
-    const matchedSets = setsInYear.map(setItem => {
-      // When query is empty, show all questions (so set stays)
-      const matchedQuestions = query === ''
-        ? setItem.questions.slice()
-        : setItem.questions.filter(q => q.toLowerCase().includes(query));
+    // Strict: keep a set only if at least one question in it matches the query
+    const matchedSets = [];
+    setsInYear.forEach(setItem => {
+      // build question objects with index so we can show Q1/Q2 and difficulty
+      const qs = setItem.questions.map((q, i) => ({ text: q, index: i + 1 }));
 
-      // Strict: show set only if matchedQuestions is non-empty
-      return (matchedQuestions.length > 0) ? { ...setItem, matchedQuestions } : null;
-    }).filter(Boolean);
+      const matchedQuestions = query === ''
+        ? qs.slice()
+        : qs.filter(qObj => qObj.text.toLowerCase().includes(query));
+
+      if (matchedQuestions.length > 0) {
+        matchedSets.push({ ...setItem, matchedQuestions });
+      }
+    });
 
     if (matchedSets.length > 0) {
       const yearBlock = document.createElement('div');
@@ -2982,17 +2986,41 @@ function filterQuestionBank() {
 
       matchedSets.forEach(s => {
         const setContainer = document.createElement('div');
+        // keep the original card style
         setContainer.className = 'p-3 rounded-xl bg-slate-900/80 border border-slate-700';
 
-        // Header: keep original color/style
-        const headerHTML = `<div class="text-xs font-semibold text-slate-200 mb-1">${escapeHtml(s.set)} — ${escapeHtml(s.topic)}</div>`;
+        // header: set id and topic (preserve style)
+        const headerHTML = `<div class="text-xs font-semibold text-slate-200 mb-2">${escapeHtml(s.set)} — ${escapeHtml(s.topic)}</div>`;
 
-        // Body: render only matchedQuestions (or all if query empty)
-        const bodyHTML = `<ul class="list-disc list-inside text-slate-300 space-y-1">` +
-          s.matchedQuestions.map(q => `<li>${escapeHtml(q)}</li>`).join('') +
-          `</ul>`;
+        // questions: show only matched questions, each with Q# and difficulty badge
+        const questionsHTML = s.matchedQuestions.map(qObj => {
+          const idx = qObj.index;
+          let diffLabel = 'Easy';
+          let diffClasses = 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20';
+          if (idx >= 4 && idx <= 6) {
+            diffLabel = 'Medium';
+            diffClasses = 'text-amber-400 bg-amber-500/10 border border-amber-500/20';
+          } else if (idx >= 7) {
+            diffLabel = 'Challenging';
+            diffClasses = 'text-purple-400 bg-purple-500/10 border border-purple-500/20';
+          }
 
-        setContainer.innerHTML = headerHTML + bodyHTML;
+          return `
+            <div class="p-2 rounded-lg bg-slate-800/60 border border-slate-700/60 flex items-start justify-between">
+              <div class="flex-1">
+                <div class="text-sm text-slate-200">
+                  <span class="font-mono text-[11px] bg-slate-700 px-2 py-0.5 rounded mr-2">Q${idx}</span>
+                  ${escapeHtml(qObj.text)}
+                </div>
+              </div>
+              <div class="ml-3 flex-shrink-0">
+                <span class="text-[11px] px-2 py-0.5 rounded-md font-semibold ${diffClasses}">${escapeHtml(diffLabel)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        setContainer.innerHTML = headerHTML + questionsHTML;
         yearBlock.appendChild(setContainer);
 
         totalMatches += s.matchedQuestions.length;
@@ -3014,8 +3042,6 @@ function escapeHtml(str = '') {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
-
-
         function updateBankCountBadge(count) {
             document.getElementById('bank-count-badge').innerText = `Showing: ${count} Questions`;
         }
