@@ -2930,59 +2930,60 @@
             }
         }
 
-        function filterQuestionBank() {
-            const searchText = document.getElementById('bank-search-input').value.toLowerCase().trim();
-            const selectedYear = document.getElementById('bank-year-select').value;
-            const selectedLevel = document.getElementById('bank-level-select').value;
+function filterQuestionBank() {
+    const searchText = document.getElementById('bank-search-input').value.toLowerCase().trim();
+    const selectedYear = document.getElementById('bank-year-select').value;
+    const selectedLevel = document.getElementById('bank-level-select').value;
 
-            let visibleCount = 0;
-            const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
+    let visibleCount = 0;
+    const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
 
-            years.forEach(yr => {
-                const yearBlock = document.getElementById(`bank-year-block-${yr}`);
-                if (!yearBlock) return;
+    years.forEach(yr => {
+        const yearBlock = document.getElementById(`bank-year-block-${yr}`);
+        if (!yearBlock) return;
 
-                let yearHasMatch = false;
+        let yearHasMatch = false;
 
-                if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
-                    yearBlock.classList.add('hidden');
-                    return;
-                }
-
-                const questionCards = yearBlock.querySelectorAll('[data-question-id]');
-                questionCards.forEach(card => {
-                    // Added .toLowerCase() here
-                    const qText = (card.getAttribute('data-question-text') || '').toLowerCase(); 
-                    const qLevel = card.getAttribute('data-level');
-
-                    const textMatch = (searchText === '' || qText.includes(searchText));
-                    const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
-
-                    if (textMatch && levelMatch) {
-                        card.classList.remove('hidden'); // SHOW card
-                        yearHasMatch = true;
-                        visibleCount++;
-                    } else {
-                        card.classList.add('hidden'); // HIDE card + metadata inside it
-                    }
-                });
-
-                if (yearHasMatch) {
-                    yearBlock.classList.remove('hidden');
-                    if (searchText !== '' || selectedLevel !== 'ALL') {
-                        const body = document.getElementById(`accordion-body-${yr}`);
-                        const icon = document.getElementById(`accordion-icon-${yr}`);
-                        if (body) body.classList.remove('hidden');
-                        if (icon) icon.classList.add('rotate-180');
-                    }
-                } else {
-                    yearBlock.classList.add('hidden');
-                }
-            });
-
-            updateBankCountBadge(visibleCount);
+        // Check year filter
+        if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
+            yearBlock.style.display = 'none';
+            return;
         }
+
+        const questionCards = yearBlock.querySelectorAll('[data-question-id]');
+        questionCards.forEach(card => {
+            const qText = card.getAttribute('data-question-text').toLowerCase();
+            const qLevel = card.getAttribute('data-level');
+
+            const textMatch = (searchText === '' || qText.includes(searchText));
+            const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
+
+            if (textMatch && levelMatch) {
+                card.style.display = '';
+                yearHasMatch = true;
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        if (yearHasMatch) {
+            yearBlock.style.display = '';
+            // Automatically open accordion if searching
+            if (searchText !== '' || selectedLevel !== 'ALL') {
+                const body = document.getElementById(`accordion-body-${yr}`);
+                const icon = document.getElementById(`accordion-icon-${yr}`);
+                if (body) body.style.display = '';
+                if (icon) icon.classList.add('rotate-180');
+            }
+        } else {
+            yearBlock.style.display = 'none';
         }
+    });
+
+    updateBankCountBadge(visibleCount);
+}
+
 
         function updateBankCountBadge(count) {
             document.getElementById('bank-count-badge').innerText = `Showing: ${count} Questions`;
