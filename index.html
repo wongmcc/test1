@@ -3084,20 +3084,27 @@ function filterQuestionBank() {
     });
 
     if (matchedSets.length > 0) {
+      // Year block header (uses same styling as other headings)
       const yearBlock = document.createElement('div');
       yearBlock.className = 'space-y-3';
       yearBlock.innerHTML = `<h3 class="text-sm font-bold text-slate-200">Year ${year}</h3>`;
 
       matchedSets.forEach(s => {
+        // Use the same set-card template you use elsewhere so visuals match exactly
         const setContainer = document.createElement('div');
-        // keep the original card style
-        setContainer.className = 'p-3 rounded-xl bg-slate-900/80 border border-slate-700';
+        setContainer.className = 'bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 shadow-xl';
 
-        // header: set id and topic (preserve style)
-        const headerHTML = `<div class="text-xs font-semibold text-slate-200 mb-2">${escapeHtml(s.set)} — ${escapeHtml(s.topic)}</div>`;
+        // Header: set id and topic
+        const header = document.createElement('div');
+        header.className = 'flex items-center justify-between mb-3';
+        header.innerHTML = `<div class="text-xs font-semibold text-slate-200">${escapeHtml(s.set)} — ${escapeHtml(s.topic)}</div>`;
 
-        // questions: show only matched questions, each with Q# and difficulty badge + Practice button
-        const questionsHTML = s.matchedQuestions.map(qObj => {
+        // Questions list container
+        const qList = document.createElement('div');
+        qList.className = 'space-y-2';
+
+        // Render only matched questions (strict)
+        s.matchedQuestions.forEach(qObj => {
           const idx = qObj.index;
           let diffLabel = 'Easy';
           let diffClasses = 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20';
@@ -3109,29 +3116,33 @@ function filterQuestionBank() {
             diffClasses = 'text-purple-400 bg-purple-500/10 border border-purple-500/20';
           }
 
-          return `
-            <div class="p-2 rounded-lg bg-slate-800/60 border border-slate-700/60 flex items-start justify-between">
-              <div class="flex-1">
-                <div class="text-sm text-slate-200">
-                  <span class="font-mono text-[11px] bg-slate-700 px-2 py-0.5 rounded mr-2">Q${idx}</span>
-                  ${escapeHtml(qObj.text)}
-                </div>
+          // Build the exact question-row template used elsewhere:
+          const qRow = document.createElement('div');
+          qRow.className = 'p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-start justify-between cursor-pointer bank-question-item';
+          qRow.setAttribute('data-year', String(s.year));
+          qRow.setAttribute('data-set', s.set);
+          qRow.setAttribute('data-index', String(idx));
+
+          qRow.innerHTML = `
+            <div class="flex-1">
+              <div class="text-sm text-slate-200">
+                <span class="font-mono text-[11px] bg-slate-700 px-2 py-0.5 rounded mr-2">Q${idx}</span>
+                ${escapeHtml(qObj.text)}
               </div>
-              <div class="ml-3 flex items-center gap-3">
-                <span class="text-[11px] px-2 py-0.5 rounded-md font-semibold ${diffClasses}">${escapeHtml(diffLabel)}</span>
-                <button class="practice-btn px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-xs rounded-lg text-white" 
-                        data-year="${s.year}" data-set="${escapeHtml(s.set)}" data-index="${idx}">
-                  Practice
-                </button>
-              </div>
+              <div class="text-xs text-slate-400 mt-1">${escapeHtml(s.topic)}</div>
+            </div>
+            <div class="ml-3 flex flex-col items-end gap-2">
+              <span class="text-[11px] px-2 py-0.5 rounded-md font-semibold ${diffClasses}">${escapeHtml(diffLabel)}</span>
             </div>
           `;
-        }).join('');
 
-        setContainer.innerHTML = headerHTML + questionsHTML;
+          qList.appendChild(qRow);
+          totalMatches += 1;
+        });
+
+        setContainer.appendChild(header);
+        setContainer.appendChild(qList);
         yearBlock.appendChild(setContainer);
-
-        totalMatches += s.matchedQuestions.length;
       });
 
       container.appendChild(yearBlock);
@@ -3140,31 +3151,30 @@ function filterQuestionBank() {
 
   countBadge.textContent = `Showing: ${totalMatches} Questions`;
 
-  // attach practice handlers for the newly created buttons
-  attachPracticeButtons();
+  // wire click handlers so clicking a question practices it (same behavior as normal)
+  attachQuestionHandlers();
 }
 
-// Attach click listeners to practice buttons (idempotent)
-function attachPracticeButtons() {
-  document.querySelectorAll('.practice-btn').forEach(btn => {
-    if (btn.dataset._listener === '1') return; // already attached
-    btn.addEventListener('click', () => {
-      const year = Number(btn.dataset.year);
-      const setId = btn.dataset.set;
-      const idx = parseInt(btn.dataset.index, 10);
-      // find the question text and topic from RAW_DATA
+// Attach click listeners to the question rows so clicking practices that question
+function attachQuestionHandlers() {
+  document.querySelectorAll('.bank-question-item').forEach(el => {
+    // prevent double-binding
+    if (el.dataset.listener === '1') return;
+    el.addEventListener('click', () => {
+      const year = Number(el.getAttribute('data-year'));
+      const setId = el.getAttribute('data-set');
+      const idx = parseInt(el.getAttribute('data-index'), 10);
       const setObj = RAW_DATA.find(d => d.year === year && d.set === setId);
       if (!setObj) return;
       const qText = setObj.questions[idx - 1] || '';
       practiceQuestion(qText, year, setId, idx, setObj.topic);
     });
-    btn.dataset._listener = '1';
+    el.dataset.listener = '1';
   });
 }
 
 // Bring a bank question into the Practice drawer (keeps the same styles)
 function practiceQuestion(text, year, setId, qIndex, topic) {
-  // Populate practice UI elements (keep same ids used elsewhere)
   const qTextEl = document.getElementById('question-text');
   const qTopicTag = document.getElementById('q-topic-tag');
   const qLevelTag = document.getElementById('q-level-tag');
@@ -3177,24 +3187,21 @@ function practiceQuestion(text, year, setId, qIndex, topic) {
   if (qIdInfo) qIdInfo.textContent = `ID: ${year}-${setId}-Q${qIndex}`;
   if (qMetaTag) qMetaTag.textContent = 'From Bank';
 
-  // Switch to the practice tab UI if your switchTab function exists
   if (typeof switchTab === 'function') {
     switchTab('practice');
   } else {
-    // fallback: show practice section and hide bank/tips if switchTab not present
     document.getElementById('tab-practice')?.classList.remove('hidden');
     document.getElementById('tab-bank')?.classList.add('hidden');
     document.getElementById('tab-tips')?.classList.add('hidden');
   }
 
-  // scroll to practice area for better UX
   const scrollTarget = document.querySelector('#tab-practice');
   if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Keep this helper in the file
+// small helper to avoid injecting raw HTML from data
 function escapeHtml(str = '') {
-  return String(str)
+  return String(str || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
