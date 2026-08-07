@@ -2944,7 +2944,6 @@
 
                 let yearHasMatch = false;
 
-                // Check year filter
                 if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
                     yearBlock.classList.add('hidden');
                     return;
@@ -2952,36 +2951,37 @@
 
                 const questionCards = yearBlock.querySelectorAll('[data-question-id]');
                 questionCards.forEach(card => {
-                    const qText = card.getAttribute('data-question-text');
+                    // Added .toLowerCase() here
+                    const qText = (card.getAttribute('data-question-text') || '').toLowerCase(); 
                     const qLevel = card.getAttribute('data-level');
 
                     const textMatch = (searchText === '' || qText.includes(searchText));
                     const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
 
-
                     if (textMatch && levelMatch) {
-                        card.classList.remove('hidden');
+                        card.classList.remove('hidden'); // SHOW card
                         yearHasMatch = true;
                         visibleCount++;
                     } else {
-                        card.classList.add('hidden');
+                        card.classList.add('hidden'); // HIDE card + metadata inside it
                     }
                 });
 
                 if (yearHasMatch) {
                     yearBlock.classList.remove('hidden');
-                    // Automatically open accordion if searching
                     if (searchText !== '' || selectedLevel !== 'ALL') {
-                        document.getElementById(`accordion-body-${yr}`).classList.remove('hidden');
-                        document.getElementById(`accordion-icon-${yr}`).classList.add('rotate-180');
+                        const body = document.getElementById(`accordion-body-${yr}`);
+                        const icon = document.getElementById(`accordion-icon-${yr}`);
+                        if (body) body.classList.remove('hidden');
+                        if (icon) icon.classList.add('rotate-180');
                     }
                 } else {
                     yearBlock.classList.add('hidden');
                 }
-                
             });
 
             updateBankCountBadge(visibleCount);
+        }
         }
 
         function updateBankCountBadge(count) {
