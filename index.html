@@ -2960,11 +2960,11 @@
 
 
                     if (textMatch && levelMatch) {
-                        card.remove('hidden');
+                        card.classList.remove('hidden');
                         yearHasMatch = true;
                         visibleCount++;
                     } else {
-                        card.add('hidden');
+                        card.classList.add('hidden');
                     }
                 });
 
