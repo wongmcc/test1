@@ -2935,58 +2935,106 @@
         }
 
 function filterQuestionBank() {
-            const searchText = document.getElementById('bank-search-input').value.toLowerCase().trim();
-            const selectedYear = document.getElementById('bank-year-select').value;
-            const selectedLevel = document.getElementById('bank-level-select').value;
+  const qEl = document.getElementById('bank-search-input');
+  const yearEl = document.getElementById('bank-year-select');
+  const levelEl = document.getElementById('bank-level-select');
+  const container = document.getElementById('bank-year-containers');
+  const badge = document.getElementById('bank-count-badge');
+  if (!container || !badge || !qEl || !yearEl || !levelEl) return;
 
-            let visibleCount = 0;
-            const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
+  const rawQuery = qEl.value.trim();
+  const query = rawQuery.toLowerCase();
+  const yearFilter = yearEl.value; // "ALL" or "2012" etc.
+  const levelFilter = levelEl.value; // "ALL", "easy", "medium", "challenging"
 
-            years.forEach(yr => {
-                const yearBlock = document.getElementById(`bank-year-block-${yr}`);
-                if (!yearBlock) return;
+  // Map level to allowed set prefix numbers
+  let allowedSets = null;
+  if (levelFilter === 'easy') allowedSets = new Set([1, 2, 3]);
+  else if (levelFilter === 'medium') allowedSets = new Set([4, 5, 6]);
+  else if (levelFilter === 'challenging') allowedSets = new Set([7, 8]);
 
-                let yearHasMatch = false;
+  const grouped = new Map();
+  let totalQuestions = 0;
 
-                // Check year filter
-                if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
-                    yearBlock.classList.add('hidden');
-                    return;
-                }
+  for (const entry of RAW_DATA) {
+    // Year filter
+    if (yearFilter !== 'ALL' && String(entry.year) !== String(yearFilter)) continue;
 
-                const questionCards = yearBlock.querySelectorAll('[data-question-id]');
-                questionCards.forEach(card => {
-                    const qText = card.getAttribute('data-question-text');
-                    const qLevel = card.getAttribute('data-level');
+    // Level filter by set prefix (eg '2.1' -> 2)
+    const setPrefix = parseInt(String(entry.set).split('.')[0], 10);
+    if (allowedSets && !allowedSets.has(setPrefix)) continue;
 
-                    const textMatch = (searchText === '' || qText.includes(searchText));
-                    const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
+    const qs = entry.questions || [];
 
+    // If no search query, include the whole set
+    if (!query) {
+      totalQuestions += qs.length;
+      if (!grouped.has(entry.year)) grouped.set(entry.year, []);
+      grouped.get(entry.year).push({ entry, matchedQuestions: qs.slice() });
+      continue;
+    }
 
-                    if (textMatch && levelMatch) {
-                        card.classList.remove('hidden');
-                        yearHasMatch = true;
-                        visibleCount++;
-                    } else {
-                        card.classList.add('hidden');
-                    }
-                });
+    // With a query: require that EVERY question in this set includes the query
+    const allMatch = qs.length > 0 && qs.every(q => String(q).toLowerCase().includes(query));
+    if (!allMatch) continue;
 
-                if (yearHasMatch) {
-                    yearBlock.classList.remove('hidden');
-                    // Automatically open accordion if searching
-                    if (searchText !== '' || selectedLevel !== 'ALL') {
-                        document.getElementById(`accordion-body-${yr}`).classList.remove('hidden');
-                        document.getElementById(`accordion-icon-${yr}`).classList.add('rotate-180');
-                    }
-                } else {
-                    yearBlock.classList.add('hidden');
-                }
-                
-            });
+    // If all questions matched -> show the whole set
+    totalQuestions += qs.length;
+    if (!grouped.has(entry.year)) grouped.set(entry.year, []);
+    grouped.get(entry.year).push({ entry, matchedQuestions: qs.slice() });
+  }
 
-            updateBankCountBadge(visibleCount);
-        }
+  // Render grouped results
+  container.innerHTML = '';
+  if (grouped.size === 0) {
+    container.innerHTML = '<div class="p-4 bg-slate-900/60 rounded-xl border border-slate-700 text-slate-400 text-sm">No matching questions found.</div>';
+    badge.textContent = 'Showing: 0 Questions';
+    return;
+  }
+
+  const years = Array.from(grouped.keys()).sort((a, b) => b - a);
+  for (const year of years) {
+    const group = grouped.get(year);
+    const yearDiv = document.createElement('div');
+    yearDiv.className = 'bg-slate-800/80 rounded-2xl p-4 border border-slate-700 shadow';
+
+    const header = document.createElement('div');
+    header.className = 'flex items-center justify-between mb-3';
+    header.innerHTML = `<h3 class="font-bold text-slate-100">${year} — ${group.length} set(s)</h3>`;
+    yearDiv.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'space-y-3';
+    for (const { entry, matchedQuestions } of group) {
+      const setNum = entry.set;
+      const topic = entry.topic;
+      const item = document.createElement('div');
+      item.className = 'p-3 bg-slate-900/60 rounded-xl border border-slate-700 text-slate-300';
+
+      const title = document.createElement('div');
+      title.className = 'flex items-center justify-between mb-2';
+      title.innerHTML = `<div class="text-sm font-semibold">${setNum} — ${topic}</div><div class="text-xs text-slate-400">${matchedQuestions.length} question(s)</div>`;
+      item.appendChild(title);
+
+      const ul = document.createElement('ul');
+      ul.className = 'list-disc list-inside text-sm text-slate-300 space-y-1';
+      matchedQuestions.forEach(q => {
+        const li = document.createElement('li');
+        li.textContent = q;
+        ul.appendChild(li);
+      });
+      item.appendChild(ul);
+
+      list.appendChild(item);
+    }
+    yearDiv.appendChild(list);
+    container.appendChild(yearDiv);
+  }
+
+  badge.textContent = `Showing: ${totalQuestions} Questions`;
+  updateBankCountBadge(visibleCount);
+}
+
 
 
         function updateBankCountBadge(count) {
