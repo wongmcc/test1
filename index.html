@@ -2934,60 +2934,202 @@
             }
         }
 
+// Helper: map question position in set (1-8) to difficulty label
+function questionDifficultyFromIndex(pos) {
+  if (pos >= 1 && pos <= 3) return 'easy';
+  if (pos >= 4 && pos <= 6) return 'medium';
+  return 'challenging'; // 7-8
+}
+
+// Optional: display-friendly difficulty badge text
+function difficultyBadgeText(d) {
+  if (d === 'easy') return 'Easy (Q1-3)';
+  if (d === 'medium') return 'Medium (Q4-6)';
+  return 'Challenging (Q7-8)';
+}
+
+// Skeleton handler for "Practice this question" — replace with your real handler if you have one.
+function practiceQuestion(year, setId, qIndex) {
+  // Example: open practice drawer and load that exact question.
+  // Replace with your app's navigation / draw logic.
+  console.log('Practice request:', { year, setId, qIndex });
+  // Example fallback: switch to practice tab
+  if (typeof switchTab === 'function') switchTab('practice');
+  // You can expand this to actually load the question text into the practice drawer.
+}
+
+// The new filter + render function
 function filterQuestionBank() {
-            const searchText = document.getElementById('bank-search-input').value.toLowerCase().trim();
-            const selectedYear = document.getElementById('bank-year-select').value;
-            const selectedLevel = document.getElementById('bank-level-select').value;
+  const qInput = document.getElementById('bank-search-input');
+  const yearSelect = document.getElementById('bank-year-select');
+  const levelSelect = document.getElementById('bank-level-select');
+  const container = document.getElementById('bank-year-containers');
+  const countBadge = document.getElementById('bank-count-badge');
 
-            let visibleCount = 0;
-            const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
+  const query = qInput?.value.trim().toLowerCase() || '';
+  const selectedYear = yearSelect?.value || 'ALL';
+  const selectedLevel = levelSelect?.value || 'ALL'; // 'ALL' | 'easy' | 'medium' | 'challenging'
 
-            years.forEach(yr => {
-                const yearBlock = document.getElementById(`bank-year-block-${yr}`);
-                if (!yearBlock) return;
+  // Accumulate matches grouped by year -> sets
+  const years = {};
+  let totalMatches = 0;
 
-                let yearHasMatch = false;
+  RAW_DATA.forEach(entry => {
+    // Year filter (skip entire entry if year filter applied)
+    if (selectedYear !== 'ALL' && String(entry.year) !== String(selectedYear)) return;
 
-                // Check year filter
-                if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
-                    yearBlock.classList.add('hidden');
-                    return;
-                }
+    // For each question in the set, check match (only question text counts)
+    const matchedQuestions = [];
+    entry.questions.forEach((qText, idx) => {
+      const qPos = idx + 1; // Q1..Q8 within the set
+      const difficulty = questionDifficultyFromIndex(qPos);
 
-                const questionCards = yearBlock.querySelectorAll('[data-question-id]');
-                questionCards.forEach(card => {
-                    const qText = card.getAttribute('data-question-text');
-                    const qLevel = card.getAttribute('data-level');
+      // Level filter: skip questions that don't match selected level (if any)
+      if (selectedLevel !== 'ALL' && difficulty !== selectedLevel) return;
 
-                    const textMatch = (searchText === '' || qText.includes(searchText));
-                    const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
+      // Matching behaviour:
+      // - If query empty => include (show all questions subject to level filter)
+      // - If query present => only include this question when question text includes query
+      if (!query || qText.toLowerCase().includes(query)) {
+        matchedQuestions.push({
+          text: qText,
+          position: qPos,
+          difficulty
+        });
+      }
+    });
 
+    // Only include this set if at least one question matched
+    if (matchedQuestions.length > 0) {
+      if (!years[entry.year]) years[entry.year] = [];
+      years[entry.year].push({
+        entry, // original set object
+        matchedQuestions
+      });
+      totalMatches += matchedQuestions.length;
+    }
+  });
 
-                    if (textMatch && levelMatch) {
-                        card.classList.remove('hidden');
-                        yearHasMatch = true;
-                        visibleCount++;
-                    } else {
-                        card.classList.add('hidden');
-                    }
-                });
+  // Render results preserving existing look & feel
+  container.innerHTML = '';
 
-                if (yearHasMatch) {
-                    yearBlock.classList.remove('hidden');
-                    // Automatically open accordion if searching
-                    if (searchText !== '' || selectedLevel !== 'ALL') {
-                        document.getElementById(`accordion-body-${yr}`).classList.remove('hidden');
-                        document.getElementById(`accordion-icon-${yr}`).classList.add('rotate-180');
-                    }
-                } else {
-                    yearBlock.classList.add('hidden');
-                }
-                
-            });
+  // If query is empty and no year filter applied, show everything (safeguard)
+  if (!query && selectedYear === 'ALL' && selectedLevel === 'ALL') {
+    // Render all years/sets/questions exactly as above but including all questions.
+    // Build years map from RAW_DATA to ensure full display
+    const allYears = {};
+    RAW_DATA.forEach(entry => {
+      if (!allYears[entry.year]) allYears[entry.year] = [];
+      const allQuestions = entry.questions.map((t, i) => ({
+        text: t,
+        position: i + 1,
+        difficulty: questionDifficultyFromIndex(i + 1)
+      }));
+      allYears[entry.year].push({ entry, matchedQuestions: allQuestions });
+    });
+    // replace years object and compute totalMatches
+    Object.keys(allYears).forEach(y => { years[y] = allYears[y]; });
+    totalMatches = RAW_DATA.reduce((acc, e) => acc + e.questions.length, 0);
+  }
 
-            updateBankCountBadge(visibleCount);
-        }
+  const sortedYears = Object.keys(years)
+    .map(Number)
+    .sort((a, b) => b - a); // newest first
 
+  if (sortedYears.length === 0) {
+    container.innerHTML = `<div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-400 text-sm italic">
+      No results — try different keywords or expand your year/level filters.
+    </div>`;
+    countBadge.textContent = `Showing: 0 Questions`;
+    return;
+  }
+
+  sortedYears.forEach(y => {
+    const sets = years[y];
+
+    // Year header (non-collapsing) — keep typography consistent
+    const yearHeader = document.createElement('div');
+    yearHeader.className = 'bg-slate-800/80 rounded-2xl p-4 border border-slate-700 shadow';
+    yearHeader.innerHTML = `<h3 class="text-sm font-bold text-slate-100 mb-3">HKDSE ${y} Individual Response Questions</h3>`;
+    
+    // Container for sets under this year
+    const setsContainer = document.createElement('div');
+    setsContainer.className = 'space-y-4';
+
+    sets.forEach(obj => {
+      const entry = obj.entry;
+      const matched = obj.matchedQuestions;
+
+      // Set card (preserve existing styling used elsewhere)
+      const setCard = document.createElement('div');
+      setCard.className = 'p-3 rounded-xl bg-slate-900/80 border border-slate-700';
+
+      // Set title row
+      const setTitle = document.createElement('div');
+      setTitle.className = 'flex items-center justify-between';
+      setTitle.innerHTML = `<div class="font-semibold text-slate-100">${entry.set} — ${entry.topic}</div>
+                            <div class="text-xs text-slate-400">${matched.length} match(es)</div>`;
+      setCard.appendChild(setTitle);
+
+      // Questions list (each question in its own box)
+      const qList = document.createElement('div');
+      qList.className = 'mt-3 space-y-2';
+
+      matched.forEach(q => {
+        const qBox = document.createElement('div');
+        qBox.className = 'p-3 rounded-lg bg-slate-800/60 border border-slate-700 flex items-start justify-between'; // preserves styling
+        // Left: question text + meta
+        const left = document.createElement('div');
+        left.className = 'flex-1 text-sm text-slate-200';
+
+        // Question number and text
+        const qNumber = document.createElement('div');
+        qNumber.className = 'font-mono text-xs text-slate-400 mb-1';
+        qNumber.textContent = `${entry.set} Q${q.position}`;
+
+        const qText = document.createElement('div');
+        qText.className = 'text-sm';
+        qText.textContent = q.text;
+
+        left.appendChild(qNumber);
+        left.appendChild(qText);
+
+        // Right: difficulty badge + practice button
+        const right = document.createElement('div');
+        right.className = 'ml-4 flex flex-col items-end space-y-2';
+
+        const diffBadge = document.createElement('div');
+        diffBadge.className = 'text-xs px-2 py-0.5 rounded-md font-semibold ' +
+                              (q.difficulty === 'easy' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                               q.difficulty === 'medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                               'bg-purple-500/10 text-purple-400 border border-purple-500/20');
+        diffBadge.textContent = difficultyBadgeText(q.difficulty);
+
+        const practiceBtn = document.createElement('button');
+        practiceBtn.className = 'mt-1 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-lg';
+        practiceBtn.textContent = 'Practice this question';
+        practiceBtn.onclick = () => practiceQuestion(entry.year, entry.set, q.position);
+
+        right.appendChild(diffBadge);
+        right.appendChild(practiceBtn);
+
+        qBox.appendChild(left);
+        qBox.appendChild(right);
+
+        qList.appendChild(qBox);
+      });
+
+      setCard.appendChild(qList);
+      setsContainer.appendChild(setCard);
+    });
+
+    yearHeader.appendChild(setsContainer);
+    container.appendChild(yearHeader);
+  });
+
+  // Update badge
+  countBadge.textContent = `Showing: ${totalMatches} Question${totalMatches !== 1 ? 's' : ''}`;
+}
 
         function updateBankCountBadge(count) {
             document.getElementById('bank-count-badge').innerText = `Showing: ${count} Questions`;
