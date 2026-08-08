@@ -2935,126 +2935,58 @@
         }
 
 function filterQuestionBank() {
-  const qInput = document.getElementById('bank-search-input');
-  const yearSelect = document.getElementById('bank-year-select');
-  const levelSelect = document.getElementById('bank-level-select');
-  const container = document.getElementById('bank-year-containers');
-  const countBadge = document.getElementById('bank-count-badge');
+            const searchText = document.getElementById('bank-search-input').value.toLowerCase().trim();
+            const selectedYear = document.getElementById('bank-year-select').value;
+            const selectedLevel = document.getElementById('bank-level-select').value;
 
-  const query = qInput?.value.trim().toLowerCase() || '';
-  const selectedYear = yearSelect?.value || 'ALL';
-  const selectedLevel = levelSelect?.value || 'ALL';
+            let visibleCount = 0;
+            const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
 
-  // helper to map set -> level (customise if you have another mapping)
-  const setToLevel = (setId) => {
-    // e.g. set '1.1'..'1.3' etc map to level buckets if needed.
-    // For simple case, return 'easy'|'medium'|'challenging' based on your system.
-    // If you already have level metadata on RAW_DATA entries, use that instead.
-    // Here we fallback to 'ALL' so filtering by level only works if real mapping exists.
-    return 'ALL';
-  };
+            years.forEach(yr => {
+                const yearBlock = document.getElementById(`bank-year-block-${yr}`);
+                if (!yearBlock) return;
 
-  // group by year, but only include matches
-  const years = {};
-  let totalMatches = 0;
+                let yearHasMatch = false;
 
-  RAW_DATA.forEach(entry => {
-    // year filter
-    if (selectedYear !== 'ALL' && String(entry.year) !== String(selectedYear)) return;
+                // Check year filter
+                if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
+                    yearBlock.classList.add('hidden');
+                    return;
+                }
 
-    // determine if this set matches the level filter (if you have mapping)
-    const entryLevel = setToLevel(entry.set); // adjust if you have real level field
-    if (selectedLevel !== 'ALL' && entryLevel !== 'ALL' && entryLevel !== selectedLevel) return;
+                const questionCards = yearBlock.querySelectorAll('[data-question-id]');
+                questionCards.forEach(card => {
+                    const qText = card.getAttribute('data-question-text');
+                    const qLevel = card.getAttribute('data-level');
 
-    // if no query, include full set (but we might still want to show only the set, not entire year)
-    if (!query) {
-      if (!years[entry.year]) years[entry.year] = [];
-      years[entry.year].push({
-        entry,
-        matchedQuestions: entry.questions.slice() // all questions
-      });
-      totalMatches += entry.questions.length;
-      return;
-    }
+                    const textMatch = (searchText === '' || qText.includes(searchText));
+                    const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
 
-    // Query present: check topic, set id, and each question text
-    const topicMatches = entry.topic && entry.topic.toLowerCase().includes(query);
-    const setMatches = entry.set && entry.set.toLowerCase().includes(query);
 
-    const matched = [];
-    if (topicMatches || setMatches) {
-      // include all questions for convenience when topic/set matches
-      matched.push(...entry.questions);
-    } else {
-      entry.questions.forEach(q => {
-        if (q.toLowerCase().includes(query)) matched.push(q);
-      });
-    }
+                    if (textMatch && levelMatch) {
+                        card.classList.remove('hidden');
+                        yearHasMatch = true;
+                        visibleCount++;
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
 
-    if (matched.length > 0) {
-      if (!years[entry.year]) years[entry.year] = [];
-      years[entry.year].push({
-        entry,
-        matchedQuestions: matched
-      });
-      totalMatches += matched.length;
-    }
-  });
+                if (yearHasMatch) {
+                    yearBlock.classList.remove('hidden');
+                    // Automatically open accordion if searching
+                    if (searchText !== '' || selectedLevel !== 'ALL') {
+                        document.getElementById(`accordion-body-${yr}`).classList.remove('hidden');
+                        document.getElementById(`accordion-icon-${yr}`).classList.add('rotate-180');
+                    }
+                } else {
+                    yearBlock.classList.add('hidden');
+                }
+                
+            });
 
-  // render
-  container.innerHTML = '';
-  const sortedYears = Object.keys(years).sort((a, b) => b - a); // newest first
-  sortedYears.forEach(y => {
-    const sets = years[y];
-    // create year accordion/header
-    const yearDiv = document.createElement('div');
-    yearDiv.className = 'bg-slate-800/80 rounded-2xl p-4 border border-slate-700 shadow';
-
-    const header = document.createElement('div');
-    header.className = 'flex items-center justify-between mb-3';
-    header.innerHTML = `<div class="font-bold">Year ${y}</div><div class="text-xs text-slate-400">${sets.length} set(s)</div>`;
-    yearDiv.appendChild(header);
-
-    // list sets
-    const list = document.createElement('div');
-    list.className = 'space-y-3';
-
-    sets.forEach(obj => {
-      const entry = obj.entry;
-      const matchedQuestions = obj.matchedQuestions;
-
-      const setCard = document.createElement('div');
-      setCard.className = 'p-3 rounded-xl bg-slate-900/80 border border-slate-700';
-
-      const title = document.createElement('div');
-      title.className = 'flex items-center justify-between';
-      title.innerHTML = `<div class="font-semibold">${entry.set} — ${entry.topic}</div><div class="text-xs text-slate-400">${matchedQuestions.length} match(es)</div>`;
-      setCard.appendChild(title);
-
-      const qList = document.createElement('ul');
-      qList.className = 'mt-2 text-xs list-decimal list-inside text-slate-300 space-y-1';
-      matchedQuestions.forEach(q => {
-        const li = document.createElement('li');
-        li.textContent = q;
-        qList.appendChild(li);
-      });
-      setCard.appendChild(qList);
-
-      list.appendChild(setCard);
-    });
-
-    yearDiv.appendChild(list);
-    container.appendChild(yearDiv);
-  });
-
-  // Update badge
-  countBadge.textContent = `Showing: ${totalMatches} Question${totalMatches !== 1 ? 's' : ''}`;
-
-  // If nothing matched, show helpful empty state
-  if (totalMatches === 0) {
-    container.innerHTML = `<div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-400 text-sm italic">No results — try different keywords or expand your year/level filters.</div>`;
-  }
-}
+            updateBankCountBadge(visibleCount);
+        }
 
 
         function updateBankCountBadge(count) {
