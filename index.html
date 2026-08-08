@@ -3039,26 +3039,96 @@ function filterQuestionBank() {
   attachPracticeButtons();
 }
 
+// Render the full bank into #bank-year-containers using your original templates (run only once)
+function renderBankOnce() {
+  const container = document.getElementById('bank-year-containers');
+  if (!container) return;
+  // if already rendered, skip
+  if (container.dataset.rendered === '1') return;
+  container.innerHTML = '';
+
+  const years = [...new Set(RAW_DATA.map(d => d.year))].sort((a,b)=>a-b);
+  years.forEach(year => {
+    const yearBlock = document.createElement('div');
+    yearBlock.className = 'year-block space-y-3';
+    yearBlock.innerHTML = `<h3 class="text-sm font-bold text-slate-200">Year ${year}</h3>`;
+
+    // group sets for this year
+    const sets = RAW_DATA.filter(d => d.year === year);
+    sets.forEach(s => {
+      // set card - use the same styling as your app
+      const setCard = document.createElement('div');
+      setCard.className = 'set-card bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 shadow-xl';
+      // header
+      const header = document.createElement('div');
+      header.className = 'flex items-center justify-between mb-3';
+      header.innerHTML = `<div class="text-xs font-semibold text-slate-200">${escapeHtml(s.set)} — ${escapeHtml(s.topic)}</div>`;
+      setCard.appendChild(header);
+
+      // questions list
+      const qList = document.createElement('div');
+      qList.className = 'space-y-2';
+      s.questions.forEach((qText, i) => {
+        const idx = i + 1;
+        let diffLabel = 'Easy';
+        if (idx >= 4 && idx <= 6) diffLabel = 'Medium';
+        else if (idx >= 7) diffLabel = 'Challenging';
+
+        const qRow = document.createElement('div');
+        qRow.className = 'bank-question-item p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-start justify-between cursor-pointer';
+        qRow.setAttribute('data-year', String(s.year));
+        qRow.setAttribute('data-set', s.set);
+        qRow.setAttribute('data-index', String(idx));
+
+        qRow.innerHTML = `
+          <div class="flex-1">
+            <div class="text-sm text-slate-200">
+              <span class="font-mono text-[11px] bg-slate-700 px-2 py-0.5 rounded mr-2">Q${idx}</span>
+              ${escapeHtml(qText)}
+            </div>
+            <div class="text-xs text-slate-400 mt-1">${escapeHtml(s.topic)}</div>
+          </div>
+          <div class="ml-3 flex flex-col items-end gap-2">
+            <span class="text-[11px] px-2 py-0.5 rounded-md font-semibold ${
+              idx >= 7 ? 'text-purple-400 bg-purple-500/10 border border-purple-500/20' :
+              (idx >=4 ? 'text-amber-400 bg-amber-500/10 border border-amber-500/20' :
+                'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20')
+            }">${escapeHtml(diffLabel)}</span>
+          </div>
+        `;
+
+        qList.appendChild(qRow);
+      });
+
+      setCard.appendChild(qList);
+      yearBlock.appendChild(setCard);
+    });
+
+    container.appendChild(yearBlock);
+  });
+
+  container.dataset.rendered = '1';
+  // attach handlers after render
+  attachQuestionHandlers();
+}
+
+// filter in-place (preserves exact layout/styles)
 function filterQuestionBank() {
+  const container = document.getElementById('bank-year-containers');
+  if (!container) return;
+
+  // ensure bank exists
+  renderBankOnce();
+
   const queryRaw = (document.getElementById('bank-search-input').value || '').trim();
   const query = queryRaw.toLowerCase();
   const yearFilter = document.getElementById('bank-year-select').value;
   const levelFilter = document.getElementById('bank-level-select').value;
-  const container = document.getElementById('bank-year-containers');
   const countBadge = document.getElementById('bank-count-badge');
-
-  // If the bank hasn't been rendered yet, fall back to the existing renderer (if any)
-  // Otherwise perform in-place show/hide on existing nodes to preserve exact styles.
-  const existingQuestions = container.querySelectorAll('.bank-question-item');
-  if (!existingQuestions || existingQuestions.length === 0) {
-    // Fallback: render-and-filter approach (use your existing renderer or previous code).
-    // If you don't have a renderer, we can add one — tell me and I'll include it.
-    return renderBankAndFilter(); // if you have a function named renderBankAndFilter, it'll run; otherwise I'll add it on request
-  }
 
   let totalMatches = 0;
 
-  // helper: level match based on question index (assumes question rows have data-index)
+  // helper: level match based on question index
   const levelMatchesForIndex = (index) => {
     if (!levelFilter || levelFilter === 'ALL') return true;
     const idx = Number(index);
@@ -3069,39 +3139,29 @@ function filterQuestionBank() {
     return true;
   };
 
-  // First, show all year/set containers so we can re-evaluate; we'll hide those without matches later
-  container.querySelectorAll('.year-block, .set-card').forEach(el => el.classList.remove('hidden'));
-
-  // Toggle individual question rows
-  existingQuestions.forEach(qEl => {
-    const text = (qEl.innerText || qEl.textContent || '').trim().toLowerCase();
+  // iterate all question rows and show/hide them
+  const qRows = container.querySelectorAll('.bank-question-item');
+  qRows.forEach(qEl => {
     const qYear = qEl.getAttribute('data-year');
-    const qSet = qEl.getAttribute('data-set');
     const qIndex = qEl.getAttribute('data-index');
+    const text = (qEl.innerText || qEl.textContent || '').trim().toLowerCase();
 
-    // Year filter: if set and doesn't match, hide
+    // year filter
     if (yearFilter !== 'ALL' && String(qYear) !== String(yearFilter)) {
       qEl.classList.add('hidden');
       qEl.style.display = 'none';
       return;
     }
 
-    // Level filter based on index
+    // level filter
     if (!levelMatchesForIndex(qIndex)) {
       qEl.classList.add('hidden');
       qEl.style.display = 'none';
       return;
     }
 
-    // Query matching: strict to question text only
-    if (!query) {
-      qEl.classList.remove('hidden');
-      qEl.style.display = '';
-      totalMatches += 1;
-      return;
-    }
-
-    if (text.includes(query)) {
+    // query match (strict: question text only)
+    if (!query || text.includes(query)) {
       qEl.classList.remove('hidden');
       qEl.style.display = '';
       totalMatches += 1;
@@ -3111,13 +3171,11 @@ function filterQuestionBank() {
     }
   });
 
-  // Now hide set cards that have no visible question children and mark year headers accordingly
-  // We assume each set card contains its question rows as descendants and that set cards have class "set-card"
-  const sets = container.querySelectorAll('.set-card');
-  sets.forEach(setEl => {
-    // optionally check year filter at set level
-    const visibleQuestion = setEl.querySelector('.bank-question-item:not(.hidden)');
-    if (visibleQuestion) {
+  // hide sets with no visible questions
+  const setCards = container.querySelectorAll('.set-card');
+  setCards.forEach(setEl => {
+    const visibleQ = setEl.querySelector('.bank-question-item:not(.hidden)');
+    if (visibleQ) {
       setEl.classList.remove('hidden');
       setEl.style.display = '';
     } else {
@@ -3126,24 +3184,23 @@ function filterQuestionBank() {
     }
   });
 
-  // Hide year blocks that have no visible set cards
-  const years = container.querySelectorAll('.year-block');
-  years.forEach(yearEl => {
-    const visibleSet = yearEl.querySelector('.set-card:not(.hidden)');
+  // hide years with no visible sets
+  const yearBlocks = container.querySelectorAll('.year-block');
+  yearBlocks.forEach(yEl => {
+    const visibleSet = yEl.querySelector('.set-card:not(.hidden)');
     if (visibleSet) {
-      yearEl.classList.remove('hidden');
-      yearEl.style.display = '';
+      yEl.classList.remove('hidden');
+      yEl.style.display = '';
     } else {
-      yearEl.classList.add('hidden');
-      yearEl.style.display = 'none';
+      yEl.classList.add('hidden');
+      yEl.style.display = 'none';
     }
   });
 
-  countBadge.textContent = `Showing: ${totalMatches} Questions`;
+  if (countBadge) countBadge.textContent = `Showing: ${totalMatches} Questions`;
 }
 
-// Helper attaches click handlers for existing question rows if not already attached.
-// If you already attach clicks elsewhere, this is safe to call (it avoids double-binding).
+// attach click handlers to question rows (idempotent)
 function attachQuestionHandlers() {
   const container = document.getElementById('bank-year-containers');
   if (!container) return;
@@ -3153,15 +3210,14 @@ function attachQuestionHandlers() {
       const year = Number(el.getAttribute('data-year'));
       const setId = el.getAttribute('data-set');
       const idx = parseInt(el.getAttribute('data-index'), 10);
-      // use RAW_DATA to find text and topic and call practiceQuestion (existing)
       const setObj = RAW_DATA.find(d => d.year === year && d.set === setId);
       if (!setObj) return;
       const qText = setObj.questions[idx - 1] || '';
-      // practiceQuestion should already exist and populate practice drawer
+      // practiceQuestion should already exist in your script; call it
       if (typeof practiceQuestion === 'function') {
         practiceQuestion(qText, year, setId, idx, setObj.topic);
       } else {
-        // fallback: set practice UI manually (same ids as in the page)
+        // fallback: populate practice fields and show practice tab
         const qTextEl = document.getElementById('question-text');
         const qTopicTag = document.getElementById('q-topic-tag');
         const qLevelTag = document.getElementById('q-level-tag');
@@ -3177,6 +3233,16 @@ function attachQuestionHandlers() {
     });
     el.dataset.listener = '1';
   });
+}
+
+// safe escape helper (keep)
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
         function updateBankCountBadge(count) {
