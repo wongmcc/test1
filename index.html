@@ -2989,28 +2989,26 @@ function practiceQuestionOpen(year, setId, qPos) {
   console.log('practiceQuestionOpen', { year, setId, qPos });
 }
 
-/* ===== Helpers (drop these in alongside RAW_DATA) ===== */
+/* ===== Helpers (paste after RAW_DATA) ===== */
 function questionDifficultyFromIndex(pos) {
   if (pos >= 1 && pos <= 3) return 'easy';
   if (pos >= 4 && pos <= 6) return 'medium';
   return 'challenging';
 }
 function difficultyBadgeText(d) {
-  if (d === 'easy') return 'difficulty (Q1-3)';
-  if (d === 'medium') return 'difficulty (Q4-6)';
-  return 'difficulty (Q7-8)';
+  if (d === 'easy') return 'Easy';
+  if (d === 'medium') return 'Medium';
+  return 'Challenging';
 }
 
 /* Skeleton practice handler (called on single-click). Replace body to integrate with your practice drawer. */
 function practiceQuestionOpen(year, setId, qPos) {
-  // Default: switch to practice tab if available and log the request.
   if (typeof switchTab === 'function') switchTab('practice');
   console.log('Practice requested:', { year, setId, qPos });
-  // If you want the card to load that question into the practice drawer,
-  // implement that logic here (e.g., loadQuestionIntoPractice(...)).
+  // implement actual load-to-practice-drawer logic here if you want
 }
 
-/* ===== Replacement: filterQuestionBank (paste in place of old function) ===== */
+/* ===== Updated filterQuestionBank (drop-in) ===== */
 function filterQuestionBank() {
   const qInput = document.getElementById('bank-search-input');
   const yearSelect = document.getElementById('bank-year-select');
@@ -3020,46 +3018,33 @@ function filterQuestionBank() {
 
   const query = (qInput?.value || '').trim().toLowerCase();
   const selectedYear = yearSelect?.value || 'ALL';
-  const selectedLevel = levelSelect?.value || 'ALL'; // 'ALL' | 'easy' | 'medium' | 'challenging'
+  const selectedLevel = levelSelect?.value || 'ALL';
 
-  // Build map year -> sets with matched questions (only question text counts)
   const yearMap = {};
   let totalMatches = 0;
 
   RAW_DATA.forEach(entry => {
-    // year filter
     if (selectedYear !== 'ALL' && String(entry.year) !== String(selectedYear)) return;
 
     const matchedQuestions = [];
     entry.questions.forEach((text, idx) => {
       const pos = idx + 1;
       const difficulty = questionDifficultyFromIndex(pos);
-
-      // level filter
       if (selectedLevel !== 'ALL' && difficulty !== selectedLevel) return;
-
       if (!query || text.toLowerCase().includes(query)) {
-        matchedQuestions.push({
-          text,
-          pos,
-          difficulty
-        });
+        matchedQuestions.push({ text, pos, difficulty });
       }
     });
 
     if (matchedQuestions.length > 0) {
       yearMap[entry.year] = yearMap[entry.year] || [];
-      yearMap[entry.year].push({
-        entry,
-        matchedQuestions
-      });
+      yearMap[entry.year].push({ entry, matchedQuestions });
       totalMatches += matchedQuestions.length;
     }
   });
 
-  // If nothing searched and filters are ALL, show full template (all questions)
+  // If no search/filters, show full map
   if (!query && selectedYear === 'ALL' && selectedLevel === 'ALL') {
-    // Build full map
     const fullMap = {};
     RAW_DATA.forEach(entry => {
       fullMap[entry.year] = fullMap[entry.year] || [];
@@ -3074,12 +3059,10 @@ function filterQuestionBank() {
     totalMatches = RAW_DATA.reduce((s, e) => s + (e.questions?.length || 0), 0);
   }
 
-  // Clear container
   container.innerHTML = '';
 
-  // Year ordering: ALWAYS ascending (small -> big)
+  // Year order ALWAYS ascending
   const years = Object.keys(yearMap).map(Number).sort((a, b) => a - b);
-
   if (years.length === 0) {
     container.innerHTML = `<div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-400 text-sm italic">No results — try different keywords or expand your filters.</div>`;
     countBadge.textContent = `Showing: 0 Questions`;
@@ -3089,17 +3072,16 @@ function filterQuestionBank() {
   years.forEach(yearNum => {
     const sets = yearMap[yearNum];
 
-    // Compute full-year totals using RAW_DATA so header is identical before/after
+    // compute full-year totals from RAW_DATA to keep header identical
     const rawEntriesForYear = RAW_DATA.filter(e => Number(e.year) === Number(yearNum));
     const totalSetsForYear = rawEntriesForYear.length;
     const totalQuestionsForYear = rawEntriesForYear.reduce((a, b) => a + (b.questions?.length || 0), 0);
 
-    // Year block wrapper (preserve look)
+    // Year block
     const yearBlock = document.createElement('div');
     yearBlock.className = 'bg-slate-800/80 rounded-2xl p-4 border border-slate-700 shadow';
 
-    // Header row: boxed year (glowing), bold title, counts, chevron
-    // Use same classes as bank-count-badge for the glowing year-box
+    // Header row: boxed year (glowing badge style), bold title, counts, chevron
     const header = document.createElement('div');
     header.className = 'flex items-center justify-between cursor-pointer';
     header.innerHTML = `
@@ -3120,56 +3102,68 @@ function filterQuestionBank() {
     `;
     yearBlock.appendChild(header);
 
-    // Full-width colored divider between year header and sets (no left/right gaps)
+    // TWO-COLOR full-width divider (top = brand tint, bottom = #161D2F), no gaps
     const yearDivider = document.createElement('div');
-    yearDivider.className = 'w-full h-0.5 my-3';
-    // Use brand tint for divider to match glowing boxes
-    yearDivider.style.background = 'rgba(34,197,94,0.08)'; // subtle match to brand-500/10
+    yearDivider.className = 'w-full';
+    yearDivider.style.height = '2px';
+    yearDivider.style.margin = '0';
+    yearDivider.style.background = 'linear-gradient(to bottom, rgba(34,197,94,0.12) 50%, #161D2F 50%)';
     yearBlock.appendChild(yearDivider);
 
-    // sets container (start expanded for pre-search; for query present it's still fine — user requested it collapse instantly when searched but clickable, we start expanded but keep clickable toggle)
+    // sets container (expanded by default; header click toggles)
     const setsContainer = document.createElement('div');
-    setsContainer.className = 'space-y-4';
+    setsContainer.className = 'space-y-4 mt-4';
 
-    // Render each set (only sets with matched questions)
     sets.forEach(obj => {
       const entry = obj.entry;
       const matched = obj.matchedQuestions;
 
-      // Set card wrapper
+      // Set card
       const setCard = document.createElement('div');
       setCard.className = 'p-3 rounded-xl bg-slate-900/80 border border-slate-700';
 
-      // Top row: glowing set-small-box + set title + small count
-      // Glowing set box: two rows, top: "set" (lowercase), bottom: set id (e.g. 1.1)
+      // Top row: set-id box (wider, color #1E3A35), title; right side removed per request (we show matched count only as second-row)
       const setTop = document.createElement('div');
-      setTop.className = 'flex items-center justify-between';
+      setTop.className = 'flex items-start justify-between';
 
       const leftSet = document.createElement('div');
-      leftSet.className = 'flex items-center space-x-3';
+      leftSet.className = 'flex items-start space-x-3';
 
       const setIdBox = document.createElement('div');
-      setIdBox.className = 'flex flex-col items-center px-2 py-1 bg-brand-500/10 text-brand-400 border border-brand-500/20 text-xs font-bold rounded-xl timer-glow';
+      setIdBox.className = 'flex flex-col items-center px-3 py-2 text-xs font-bold rounded-xl';
+      setIdBox.style.background = '#1E3A35';
+      setIdBox.style.color = '#DFF6EC'; // light-ish text to contrast
+      setIdBox.style.border = '1px solid rgba(30,58,53,0.25)';
       setIdBox.innerHTML = `<div class="text-[10px] uppercase font-semibold">set</div><div class="mt-0.5">${entry.set}</div>`;
 
-      const setTitleAndMeta = document.createElement('div');
-      setTitleAndMeta.innerHTML = `<div class="font-semibold text-slate-100">${entry.topic}</div><div class="text-xs text-slate-400">${(entry.questions?.length || matched.length)} question</div>`;
+      const titleBlock = document.createElement('div');
+      titleBlock.className = 'min-w-0'; // allow truncation if needed
+      // First row: topic (title)
+      const titleRow = document.createElement('div');
+      titleRow.className = 'font-semibold text-slate-100';
+      titleRow.textContent = entry.topic;
+      // Second row: number of matched questions (only the number)
+      const secondRow = document.createElement('div');
+      secondRow.className = 'text-xs text-slate-400 mt-1';
+      secondRow.textContent = `${matched.length}`;
+
+      titleBlock.appendChild(titleRow);
+      titleBlock.appendChild(secondRow);
 
       leftSet.appendChild(setIdBox);
-      leftSet.appendChild(setTitleAndMeta);
+      leftSet.appendChild(titleBlock);
 
-      const rightSetMeta = document.createElement('div');
-      rightSetMeta.className = 'text-xs text-slate-400';
-      rightSetMeta.textContent = `${matched.length} match(es)`;
-
+      // Right side: removed extra metadata per your instruction (we already show matched count as second row)
       setTop.appendChild(leftSet);
-      setTop.appendChild(rightSetMeta);
       setCard.appendChild(setTop);
 
-      // Divider line under the set title — color matches set-box
+      // Divider under set title — full width, color uses #1E3A35 top tint over #161D2F bottom so it visually matches set color but respects requested lower background
       const setDivider = document.createElement('div');
-      setDivider.className = 'w-full h-0.5 mt-3 mb-3';
-      setDivider.style.background = 'rgba(34,197,94,0.08)'; // same subtle color as year divider
+      setDivider.className = 'w-full';
+      setDivider.style.height = '2px';
+      setDivider.style.margin = '0.75rem 0 0.75rem 0';
+      // Top half set color, bottom half page-dark (#161D2F) to create the separation effect you described
+      setDivider.style.background = 'linear-gradient(to bottom, rgba(30,58,53,0.12) 50%, #161D2F 50%)';
       setCard.appendChild(setDivider);
 
       // Questions list
@@ -3178,27 +3172,44 @@ function filterQuestionBank() {
 
       matched.forEach(q => {
         const qCard = document.createElement('div');
-        // preserve original card look; question text smaller (text-xs) and difficulty same size
-        qCard.className = 'relative p-3 rounded-lg bg-slate-800/60 border border-slate-700 flex items-start justify-between';
+        qCard.className = 'relative p-3 rounded-lg bg-slate-800/60 border border-slate-700';
 
-        // Q# top-left (bold monospaced)
+        // Q# top-left: dimmer (text-slate-400) but bold
         const qNum = document.createElement('div');
-        qNum.className = 'absolute left-3 top-2 font-mono font-bold text-xs text-slate-200';
+        qNum.className = 'absolute left-3 top-2 font-mono font-bold text-xs';
+        qNum.style.color = '#94A3B8'; // text-slate-400 hex
         qNum.textContent = `Q${q.pos}`;
 
-        // Question text (small, same size as difficulty)
+        // Main column: question text (small, bold), then reserved practice row below
+        const mainCol = document.createElement('div');
+        mainCol.className = 'flex-1';
+
         const qText = document.createElement('div');
-        qText.className = 'flex-1 text-xs text-slate-200';
-        qText.style.fontWeight = '600'; // ensure bold as requested for the question words
+        qText.className = 'text-xs text-slate-200';
+        qText.style.fontWeight = '600'; // bold-ish like before
+        qText.style.marginLeft = '0.5rem'; // avoid overlap with absolute Q#
         qText.textContent = q.text;
 
-        // Right column: difficulty pill and (hidden) practice area row
+        // Reserved practice row full-width inside card, hidden by default; will appear and be triggered on single-click
+        const practiceRow = document.createElement('div');
+        practiceRow.className = 'mt-3 text-xs text-white hidden';
+        practiceRow.style.cursor = 'pointer';
+        practiceRow.textContent = 'Practice This Question →';
+
+        practiceRow.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          practiceQuestionOpen(yearNum, entry.set, q.pos);
+        });
+
+        mainCol.appendChild(qText);
+        mainCol.appendChild(practiceRow);
+
+        // Right column: difficulty pill (rounded)
         const rightCol = document.createElement('div');
-        rightCol.className = 'ml-4 flex flex-col items-end space-y-2';
+        rightCol.className = 'ml-4 flex items-start';
 
         const diffBadge = document.createElement('div');
         diffBadge.className = 'text-xs px-3 py-1 rounded-full font-semibold';
-        // color by difficulty (use subtle tints, but keep text-xs)
         if (q.difficulty === 'easy') {
           diffBadge.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/20');
         } else if (q.difficulty === 'medium') {
@@ -3208,32 +3219,16 @@ function filterQuestionBank() {
         }
         diffBadge.textContent = difficultyBadgeText(q.difficulty);
 
-        // Practice row reserved inside card: hidden by default but will appear and be triggered on single click
-        const practiceRow = document.createElement('div');
-        practiceRow.className = 'mt-1 text-xs text-white hidden';
-        practiceRow.style.cursor = 'pointer';
-        practiceRow.textContent = 'Practice This Question →';
-
-        // When practiceRow clicked (if user clicks it directly), trigger practice as well
-        practiceRow.addEventListener('click', (ev) => {
-          ev.stopPropagation();
-          practiceQuestionOpen(yearNum, entry.set, q.pos);
-        });
-
         rightCol.appendChild(diffBadge);
-        rightCol.appendChild(practiceRow);
 
-        // Single-click behavior: clicking the whole qCard reveals the practiceRow and immediately triggers practice
+        // Single-click behavior: reveal practiceRow and immediately trigger practice
         qCard.addEventListener('click', () => {
-          if (practiceRow.classList.contains('hidden')) {
-            practiceRow.classList.remove('hidden');
-          }
-          // Immediately trigger the practice action
+          if (practiceRow.classList.contains('hidden')) practiceRow.classList.remove('hidden');
           practiceQuestionOpen(yearNum, entry.set, q.pos);
         });
 
         qCard.appendChild(qNum);
-        qCard.appendChild(qText);
+        qCard.appendChild(mainCol);
         qCard.appendChild(rightCol);
 
         qList.appendChild(qCard);
@@ -3246,7 +3241,6 @@ function filterQuestionBank() {
     yearBlock.appendChild(setsContainer);
     container.appendChild(yearBlock);
 
-    // Header click toggles sets container and chevron rotation
     header.addEventListener('click', () => {
       setsContainer.classList.toggle('hidden');
       const chev = header.querySelector('.chev');
@@ -3254,7 +3248,6 @@ function filterQuestionBank() {
     });
   });
 
-  // Update badge with total matched count
   countBadge.textContent = `Showing: ${totalMatches} Question${totalMatches !== 1 ? 's' : ''}`;
 }
         function updateBankCountBadge(count) {
