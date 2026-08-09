@@ -2458,202 +2458,6 @@
                 'Does society discriminate against the elderly?'
             ]}
         ];
-// Helpers: difficulty mapping
-function questionDifficultyFromIndex(pos) {
-  if (pos >= 1 && pos <= 3) return 'easy';
-  if (pos >= 4 && pos <= 6) return 'medium';
-  return 'challenging';
-}
-
-// Render the full bank into the DOM once (preserves visuals and handlers)
-function renderFullBank() {
-  const container = document.getElementById('bank-year-containers');
-  if (!container) return;
-  container.innerHTML = '';
-
-  // Group RAW_DATA by year ascending
-  const byYear = {};
-  RAW_DATA.forEach(e => { byYear[e.year] = byYear[e.year] || []; byYear[e.year].push(e); });
-  const years = Object.keys(byYear).map(Number).sort((a,b)=>a-b);
-
-  years.forEach(yearNum => {
-    const yearEntries = byYear[yearNum];
-
-    const yearBlock = document.createElement('div');
-    yearBlock.className = 'year-block bg-slate-800/80 rounded-2xl p-4 border border-slate-700 shadow';
-
-    const header = document.createElement('div');
-    header.className = 'flex items-center justify-between cursor-pointer';
-    header.innerHTML = `
-      <div class="flex items-center space-x-3">
-        <div class="px-3 py-2 bg-brand-500/10 text-brand-400 border border-brand-500/20 text-xs font-bold rounded-xl timer-glow">${yearNum}</div>
-        <div>
-          <div class="font-bold text-slate-100">HKDSE ${yearNum} Individual Response Questions</div>
-          <div class="text-xs text-slate-400">${yearEntries.reduce((s,e)=> s + (e.questions?.length || 0),0)} Questions across ${yearEntries.length} Sets</div>
-        </div>
-      </div>
-      <div class="chev-wrap flex items-center">
-        <svg class="chev w-5 h-5 text-slate-400 transform transition-transform duration-150" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 011.08 1.03l-4.25 4.52a.75.75 0 01-1.08 0L5.21 8.26a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
-        </svg>
-      </div>
-    `;
-    yearBlock.appendChild(header);
-
-    // two-color divider (top brand tint, bottom dark)
-    const yearDivider = document.createElement('div');
-    yearDivider.className = 'w-full';
-    yearDivider.style.height = '2px';
-    yearDivider.style.margin = '0.5rem 0';
-    yearDivider.style.background = 'linear-gradient(to bottom, rgba(34,197,94,0.08) 50%, #161D2F 50%)';
-    yearBlock.appendChild(yearDivider);
-
-    const setsContainer = document.createElement('div');
-    setsContainer.className = 'sets-container space-y-4 mt-4';
-
-    yearEntries.forEach(entry => {
-      const setCard = document.createElement('div');
-      setCard.className = 'set-card p-3 rounded-xl bg-slate-900/80 border border-slate-700';
-      setCard.dataset.year = entry.year;
-      setCard.dataset.set = entry.set;
-
-      const setTop = document.createElement('div');
-      setTop.className = 'flex items-start justify-between';
-      const leftSet = document.createElement('div'); leftSet.className = 'flex items-start space-x-3';
-
-      const setIdBox = document.createElement('div');
-      setIdBox.className = 'flex flex-col items-center px-3 py-2 text-xs font-bold rounded-xl';
-      setIdBox.style.background = '#1E3A35';
-      setIdBox.style.color = '#DFF6EC';
-      setIdBox.style.border = '1px solid rgba(30,58,53,0.25)';
-      setIdBox.innerHTML = `<div class="text-[10px] uppercase font-semibold">set</div><div class="mt-0.5">${entry.set}</div>`;
-
-      const titleBlock = document.createElement('div'); titleBlock.className = 'min-w-0';
-      const titleRow = document.createElement('div'); titleRow.className = 'font-semibold text-slate-100'; titleRow.textContent = entry.topic;
-      const secondRow = document.createElement('div'); secondRow.className = 'text-xs text-slate-400 mt-1'; secondRow.textContent = `${entry.questions.length}`;
-      titleBlock.appendChild(titleRow); titleBlock.appendChild(secondRow);
-
-      leftSet.appendChild(setIdBox); leftSet.appendChild(titleBlock);
-      setTop.appendChild(leftSet);
-      setCard.appendChild(setTop);
-
-      const setDivider = document.createElement('div');
-      setDivider.className = 'w-full'; setDivider.style.height = '2px'; setDivider.style.margin = '0.5rem 0';
-      setDivider.style.background = 'linear-gradient(to bottom, rgba(30,58,53,0.12) 50%, #161D2F 50%)';
-      setCard.appendChild(setDivider);
-
-      const qList = document.createElement('div'); qList.className = 'space-y-2';
-      entry.questions.forEach((qText, idx) => {
-        const pos = idx + 1;
-        const qCard = document.createElement('div');
-        qCard.className = 'question-card relative p-3 rounded-lg bg-slate-800/60 border border-slate-700';
-        qCard.dataset.year = entry.year;
-        qCard.dataset.set = entry.set;
-        qCard.dataset.pos = pos;
-
-        const qNum = document.createElement('div');
-        qNum.className = 'absolute left-3 top-2 font-mono font-bold text-xs'; qNum.style.color = '#94A3B8'; qNum.textContent = `Q${pos}`;
-
-        const qTextEl = document.createElement('div');
-        qTextEl.className = 'question-text text-xs text-slate-200'; qTextEl.style.fontWeight = '600'; qTextEl.style.marginLeft = '0.5rem';
-        qTextEl.textContent = qText;
-
-        const difficulty = questionDifficultyFromIndex(pos);
-        const diffBadge = document.createElement('div');
-        diffBadge.className = 'text-xs px-3 py-1 rounded-full font-semibold';
-        if (difficulty === 'easy') diffBadge.classList.add('bg-emerald-500/10','text-emerald-400','border','border-emerald-500/20');
-        else if (difficulty === 'medium') diffBadge.classList.add('bg-amber-500/10','text-amber-400','border','border-amber-500/20');
-        else diffBadge.classList.add('bg-purple-500/10','text-purple-400','border','border-purple-500/20');
-        diffBadge.textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
-
-        const rightCol = document.createElement('div'); rightCol.className = 'ml-4 flex items-start'; rightCol.appendChild(diffBadge);
-
-        const practiceRow = document.createElement('div'); practiceRow.className = 'mt-3 text-xs text-white hidden'; practiceRow.style.cursor = 'pointer';
-        practiceRow.textContent = 'Practice This Question →';
-        practiceRow.addEventListener('click', ev => { ev.stopPropagation(); practiceQuestionOpen(entry.year, entry.set, pos); });
-
-        qCard.addEventListener('click', () => { if (practiceRow.classList.contains('hidden')) practiceRow.classList.remove('hidden'); practiceQuestionOpen(entry.year, entry.set, pos); });
-
-        qCard.appendChild(qNum); qCard.appendChild(qTextEl); qCard.appendChild(rightCol); qCard.appendChild(practiceRow);
-        qList.appendChild(qCard);
-      });
-
-      setCard.appendChild(qList);
-      setsContainer.appendChild(setCard);
-    });
-
-    yearBlock.appendChild(setsContainer);
-    container.appendChild(yearBlock);
-
-    header.addEventListener('click', () => {
-      setsContainer.classList.toggle('hidden');
-      const chev = header.querySelector('.chev'); if (chev) chev.classList.toggle('rotate-180');
-    });
-  });
-}
-
-// Global filter function (used by your onkeyup/onchange)
-function filterQuestionBank() {
-  const queryEl = document.getElementById('bank-search-input');
-  const yearSel = document.getElementById('bank-year-select');
-  const levelSel = document.getElementById('bank-level-select');
-  const container = document.getElementById('bank-year-containers');
-  const badge = document.getElementById('bank-count-badge');
-  if (!container || !queryEl || !yearSel || !levelSel || !badge) return;
-
-  const query = (queryEl.value || '').trim().toLowerCase();
-  const selYear = yearSel.value || 'ALL';
-  const selLevel = levelSel.value || 'ALL';
-
-  const allQuestionCards = container.querySelectorAll('.question-card');
-  const showAll = !query && selYear === 'ALL' && selLevel === 'ALL';
-  let matchCount = 0;
-
-  if (showAll) {
-    allQuestionCards.forEach(c => c.classList.remove('hidden'));
-    container.querySelectorAll('.set-card').forEach(s => s.classList.remove('hidden'));
-    container.querySelectorAll('.year-block').forEach(y => y.classList.remove('hidden'));
-    badge.textContent = `Showing: ${allQuestionCards.length} Questions`;
-    return;
-  }
-
-  allQuestionCards.forEach(card => {
-    const qText = (card.querySelector('.question-text')?.textContent || '').toLowerCase();
-    const qYear = String(card.dataset.year || '');
-    const qPos = Number(card.dataset.pos || 0);
-    const difficulty = questionDifficultyFromIndex(qPos);
-
-    const yearOk = (selYear === 'ALL' || qYear === String(selYear));
-    const levelOk = (selLevel === 'ALL' || difficulty === selLevel);
-    const textOk = (!query || qText.includes(query));
-
-    const visible = yearOk && levelOk && textOk;
-    card.classList.toggle('hidden', !visible);
-    if (visible) matchCount++;
-  });
-
-  container.querySelectorAll('.set-card').forEach(setCard => {
-    const visibleQuestions = setCard.querySelectorAll('.question-card:not(.hidden)').length;
-    setCard.classList.toggle('hidden', visibleQuestions === 0);
-    const secondRow = setCard.querySelector('.text-xs.text-slate-400');
-    if (secondRow) secondRow.textContent = `${visibleQuestions}`;
-  });
-
-  container.querySelectorAll('.year-block').forEach(yearBlock => {
-    const visibleSets = yearBlock.querySelectorAll('.set-card:not(.hidden)').length;
-    yearBlock.classList.toggle('hidden', visibleSets === 0);
-  });
-
-  badge.textContent = `Showing: ${matchCount} Question${matchCount !== 1 ? 's' : ''}`;
-}
-
-// Render once DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  renderFullBank();
-  const container = document.getElementById('bank-year-containers');
-  const badge = document.getElementById('bank-count-badge');
-  if (container && badge) badge.textContent = `Showing: ${container.querySelectorAll('.question-card').length} Questions`;
-});
 
         // Flatten into individual questions for fast indexing
         let ALL_QUESTIONS = [];
@@ -3130,499 +2934,80 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-// Helper: map question position in set (1-8) to difficulty label
-function questionDifficultyFromIndex(pos) {
-  if (pos >= 1 && pos <= 3) return 'easy';
-  if (pos >= 4 && pos <= 6) return 'medium';
-  return 'challenging'; // 7-8
-}
-
-// Optional: display-friendly difficulty badge text
-function difficultyBadgeText(d) {
-  if (d === 'easy') return 'Easy (Q1-3)';
-  if (d === 'medium') return 'Medium (Q4-6)';
-  return 'Challenging (Q7-8)';
-}
-
-// Skeleton handler for "Practice this question" — replace with your real handler if you have one.
-function practiceQuestion(year, setId, qIndex) {
-  // Example: open practice drawer and load that exact question.
-  // Replace with your app's navigation / draw logic.
-  console.log('Practice request:', { year, setId, qIndex });
-  // Example fallback: switch to practice tab
-  if (typeof switchTab === 'function') switchTab('practice');
-  // You can expand this to actually load the question text into the practice drawer.
-}
-
-/* ===== Helpers: difficulty mapping & small CSS helper ===== */
-function questionDifficultyFromIndex(pos) {
-  if (pos >= 1 && pos <= 3) return 'easy';
-  if (pos >= 4 && pos <= 6) return 'medium';
-  return 'challenging';
-}
-function difficultyBadgeText(d) {
-  if (d === 'easy') return 'Easy';
-  if (d === 'medium') return 'Medium';
-  return 'Challenging';
-}
-
-/* Optional helper class toggle for "Practice This Question ->" visibility.
-   We rely on tailwind's 'hidden' class in markup, toggling it on click. */
-function togglePracticeLinkVisibility(el) {
-  // el is the practice link element
-  if (!el) return;
-  if (el.classList.contains('hidden')) el.classList.remove('hidden');
-  else el.classList.add('hidden');
-}
-
-/* practiceQuestion skeleton (no visible primary button required).
-   Clicking the Q card toggles the invisible practice link; calling this is optional.
-   If you want the click to open your practice drawer immediately, replace this body.
-*/
-function practiceQuestionOpen(year, setId, qPos) {
-  // No action by default. Keep this as a hook for you to implement.
-  // Example: switchTab('practice'); loadQuestionIntoPractice(year, setId, qPos);
-  console.log('practiceQuestionOpen', { year, setId, qPos });
-}
-
-// Helpers: difficulty mapping
-function questionDifficultyFromIndex(pos) {
-  if (pos >= 1 && pos <= 3) return 'easy';
-  if (pos >= 4 && pos <= 6) return 'medium';
-  return 'challenging';
-}
-
-// Render the full bank into the DOM once (preserves your visual template)
-function renderFullBank() {
-  const container = document.getElementById('bank-year-containers');
-  if (!container) return;
-
-  container.innerHTML = ''; // start fresh
-
-  // Group RAW_DATA by year (ascending)
-  const byYear = {};
-  RAW_DATA.forEach(e => {
-    byYear[e.year] = byYear[e.year] || [];
-    byYear[e.year].push(e);
-  });
-  const years = Object.keys(byYear).map(Number).sort((a,b)=>a-b);
-
-  years.forEach(yearNum => {
-    const yearEntries = byYear[yearNum];
-
-    // Year wrapper
-    const yearBlock = document.createElement('div');
-    yearBlock.className = 'year-block bg-slate-800/80 rounded-2xl p-4 border border-slate-700 shadow';
-
-    // Header (keeps same look as your earlier template; adjust classes if you want exact match)
-    const header = document.createElement('div');
-    header.className = 'flex items-center justify-between cursor-pointer';
-    header.innerHTML = `
-      <div class="flex items-center space-x-3">
-        <div class="px-3 py-2 bg-brand-500/10 text-brand-400 border border-brand-500/20 text-xs font-bold rounded-xl timer-glow">${yearNum}</div>
-        <div>
-          <div class="font-bold text-slate-100">HKDSE ${yearNum} Individual Response Questions</div>
-          <div class="text-xs text-slate-400">${yearEntries.reduce((s, e)=> s + (e.questions?.length || 0), 0)} Questions across ${yearEntries.length} Sets</div>
-        </div>
-      </div>
-      <div class="chev-wrap flex items-center">
-        <svg class="chev w-5 h-5 text-slate-400 transform transition-transform duration-150" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 011.08 1.03l-4.25 4.52a.75.75 0 01-1.08 0L5.21 8.26a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
-        </svg>
-      </div>
-    `;
-    yearBlock.appendChild(header);
-
-    // Divider (two-color effect if you prefer—kept subtle here)
-    const yearDivider = document.createElement('div');
-    yearDivider.className = 'w-full';
-    yearDivider.style.height = '2px';
-    yearDivider.style.margin = '0.5rem 0';
-    yearDivider.style.background = 'linear-gradient(to bottom, rgba(34,197,94,0.08) 50%, #161D2F 50%)';
-    yearBlock.appendChild(yearDivider);
-
-    // Sets container
-    const setsContainer = document.createElement('div');
-    setsContainer.className = 'sets-container space-y-4 mt-4';
-
-    // For each set, create set card + questions
-    yearEntries.forEach(entry => {
-      const setCard = document.createElement('div');
-      setCard.className = 'set-card p-3 rounded-xl bg-slate-900/80 border border-slate-700';
-      setCard.dataset.year = entry.year;
-      setCard.dataset.set = entry.set;
-
-      // Top row with set-id box and topic/title + second row for matched count placeholder
-      const setTop = document.createElement('div');
-      setTop.className = 'flex items-start justify-between';
-
-      const leftSet = document.createElement('div');
-      leftSet.className = 'flex items-start space-x-3';
-
-      const setIdBox = document.createElement('div');
-      setIdBox.className = 'flex flex-col items-center px-3 py-2 text-xs font-bold rounded-xl';
-      setIdBox.style.background = '#1E3A35';
-      setIdBox.style.color = '#DFF6EC';
-      setIdBox.style.border = '1px solid rgba(30,58,53,0.25)';
-      setIdBox.innerHTML = `<div class="text-[10px] uppercase font-semibold">set</div><div class="mt-0.5">${entry.set}</div>`;
-
-      const titleBlock = document.createElement('div');
-      titleBlock.className = 'min-w-0';
-      const titleRow = document.createElement('div');
-      titleRow.className = 'font-semibold text-slate-100';
-      titleRow.textContent = entry.topic;
-      const secondRow = document.createElement('div');
-      secondRow.className = 'text-xs text-slate-400 mt-1';
-      // show total questions for the set here (this will be replaced with matched count by filter)
-      secondRow.textContent = `${entry.questions.length}`;
-
-      titleBlock.appendChild(titleRow);
-      titleBlock.appendChild(secondRow);
-
-      leftSet.appendChild(setIdBox);
-      leftSet.appendChild(titleBlock);
-      setTop.appendChild(leftSet);
-      setCard.appendChild(setTop);
-
-      // Divider under set title
-      const setDivider = document.createElement('div');
-      setDivider.className = 'w-full';
-      setDivider.style.height = '2px';
-      setDivider.style.margin = '0.5rem 0';
-      setDivider.style.background = 'linear-gradient(to bottom, rgba(30,58,53,0.12) 50%, #161D2F 50%)';
-      setCard.appendChild(setDivider);
-
-      // Questions list (each question card)
-      const qList = document.createElement('div');
-      qList.className = 'space-y-2';
-
-      entry.questions.forEach((qText, idx) => {
-        const pos = idx + 1;
-        const qCard = document.createElement('div');
-        qCard.className = 'question-card relative p-3 rounded-lg bg-slate-800/60 border border-slate-700';
-        qCard.dataset.year = entry.year;
-        qCard.dataset.set = entry.set;
-        qCard.dataset.pos = pos;
-
-        // Q number (dim)
-        const qNum = document.createElement('div');
-        qNum.className = 'absolute left-3 top-2 font-mono font-bold text-xs';
-        qNum.style.color = '#94A3B8';
-        qNum.textContent = `Q${pos}`;
-
-        // Question text element (for search)
-        const qTextEl = document.createElement('div');
-        qTextEl.className = 'question-text text-xs text-slate-200';
-        qTextEl.style.fontWeight = '600';
-        qTextEl.style.marginLeft = '0.5rem';
-        qTextEl.textContent = qText;
-
-        // Difficulty pill
-        const diffBadge = document.createElement('div');
-        diffBadge.className = 'text-xs px-3 py-1 rounded-full font-semibold';
-        const difficulty = questionDifficultyFromIndex(pos);
-        if (difficulty === 'easy') diffBadge.classList.add('bg-emerald-500/10','text-emerald-400','border','border-emerald-500/20');
-        else if (difficulty === 'medium') diffBadge.classList.add('bg-amber-500/10','text-amber-400','border','border-amber-500/20');
-        else diffBadge.classList.add('bg-purple-500/10','text-purple-400','border','border-purple-500/20');
-        diffBadge.textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
-
-        const rightCol = document.createElement('div');
-        rightCol.className = 'ml-4 flex items-start';
-        rightCol.appendChild(diffBadge);
-
-        // Reserve practice row (hidden)
-        const practiceRow = document.createElement('div');
-        practiceRow.className = 'mt-3 text-xs text-white hidden';
-        practiceRow.style.cursor = 'pointer';
-        practiceRow.textContent = 'Practice This Question →';
-        practiceRow.addEventListener('click', ev => {
-          ev.stopPropagation();
-          practiceQuestionOpen(entry.year, entry.set, pos);
-        });
-
-        // clicking qCard reveals practice row and triggers single-click action
-        qCard.addEventListener('click', () => {
-          if (practiceRow.classList.contains('hidden')) practiceRow.classList.remove('hidden');
-          practiceQuestionOpen(entry.year, entry.set, pos);
-        });
-
-        qCard.appendChild(qNum);
-        qCard.appendChild(qTextEl);
-        qCard.appendChild(rightCol);
-        qCard.appendChild(practiceRow);
-
-        qList.appendChild(qCard);
-      });
-
-      setCard.appendChild(qList);
-      setsContainer.appendChild(setCard);
-    });
-
-    yearBlock.appendChild(setsContainer);
-    container.appendChild(yearBlock);
-
-    // header toggle: collapse/expand sets
-    header.addEventListener('click', () => {
-      setsContainer.classList.toggle('hidden');
-      const chev = header.querySelector('.chev');
-      if (chev) chev.classList.toggle('rotate-180');
-    });
-  });
-}
-
-// Non-destructive DOM-only filter. Does NOT rebuild DOM or change styling/event handlers.
-(function () {
-  // helper: map Q position -> difficulty
-  function questionDifficultyFromIndex(pos) {
-    if (pos >= 1 && pos <= 3) return 'easy';
-    if (pos >= 4 && pos <= 6) return 'medium';
-    return 'challenging';
-  }
-
-  // helper: try to extract numeric pos from dataset or from inner text like "Q3"
-  function extractPos(el) {
-    if (!el) return 0;
-    const ds = el.dataset && el.dataset.pos;
-    if (ds) return Number(ds) || 0;
-    // search for "Q<number>" in element text or in a child
-    const text = (el.textContent || '').trim();
-    const m = text.match(/Q\s?(\d{1,2})/i);
-    if (m) return Number(m[1]) || 0;
-    // attempt to find child with Q#
-    const qChild = el.querySelector && el.querySelector('[data-pos], .qnum, .q-num, .q-number, .q-no');
-    if (qChild && qChild.dataset && qChild.dataset.pos) return Number(qChild.dataset.pos) || 0;
-    if (qChild) {
-      const mm = (qChild.textContent || '').match(/Q\s?(\d{1,2})/i);
-      if (mm) return Number(mm[1]) || 0;
-    }
-    return 0;
-  }
-
-  // helper: extract question text (normalize)
-  function extractQuestionText(el) {
-    if (!el) return '';
-    // common internal class names to try
-    const selectors = ['.question-text', '.q-text', '.qbody', '.question-body', '.text', 'p', 'span', 'div'];
-    for (const sel of selectors) {
-      const found = el.querySelector && el.querySelector(sel);
-      if (found && (found.textContent || '').trim()) return found.textContent.trim();
-    }
-    // fallback to element's own text
-    return (el.textContent || '').trim();
-  }
-
-  // helper: find ancestor set/year wrappers and get dataset.year if available
-  function findAncestorData(el, selectorCandidates) {
-    let node = el;
-    while (node && node !== document.documentElement) {
-      for (const sel of selectorCandidates) {
-        if (node.matches && node.matches(sel)) return node;
-      }
-      node = node.parentElement;
-    }
-    return null;
-  }
-
-  // The global function used by the UI (onkeyup/onchange)
-  window.filterQuestionBank = function filterQuestionBankDomOnly() {
-    const container = document.getElementById('bank-year-containers');
-    const searchEl = document.getElementById('bank-search-input');
-    const yearSel = document.getElementById('bank-year-select');
-    const levelSel = document.getElementById('bank-level-select');
-    const badge = document.getElementById('bank-count-badge');
-
-    if (!container || !searchEl || !yearSel || !levelSel || !badge) {
-      // If required controls or container not present, do nothing (safe)
-      console.warn('filterQuestionBank: required DOM elements not found.');
-      return;
-    }
-
-    const query = (searchEl.value || '').trim().toLowerCase();
-    const selYear = (yearSel.value || 'ALL');
-    const selLevel = (levelSel.value || 'ALL');
-
-    // Try multiple selectors to find question nodes without assuming DOM structure
-    const candidateSelectors = [
-      '.question-card',
-      '.q-card',
-      '.bank-question',
-      '.question',
-      '[data-pos]',
-      '.bank-item'
-    ];
-    const candidates = new Set();
-    candidateSelectors.forEach(sel => {
-      container.querySelectorAll(sel).forEach(n => candidates.add(n));
-    });
-    // If none matched by the above, as a fallback take any element that looks like a question row:
-    if (candidates.size === 0) {
-      // pick direct children of sets or container that are likely cards
-      container.querySelectorAll(':scope > *').forEach(n => candidates.add(n));
-    }
-
-    const questionNodes = Array.from(candidates);
-
-    if (questionNodes.length === 0) {
-      console.warn('filterQuestionBank: no question-like nodes found — nothing to filter.');
-      badge.textContent = 'Showing: 0 Questions';
-      return;
-    }
-
-    const showAll = !query && selYear === 'ALL' && selLevel === 'ALL';
-    let matchCount = 0;
-
-    if (showAll) {
-      // reveal everything
-      questionNodes.forEach(qn => qn.classList.remove('hidden'));
-      // reveal set/year wrappers if present
-      container.querySelectorAll('.set-card, .set, .bank-set').forEach(s => s.classList.remove('hidden'));
-      container.querySelectorAll('.year-block, .bank-year').forEach(y => y.classList.remove('hidden'));
-      badge.textContent = `Showing: ${questionNodes.length} Questions`;
-      return;
-    }
-
-    // First, toggle each question visibility
-    questionNodes.forEach(qn => {
-      const qText = extractQuestionText(qn).toLowerCase();
-      const pos = extractPos(qn);
-      const difficulty = questionDifficultyFromIndex(pos);
-
-      // determine year: prefer dataset on question, then ancestor .set-card or .year-block
-      let year = qn.dataset && qn.dataset.year ? String(qn.dataset.year) : null;
-      if (!year) {
-        // check ancestor set-card
-        const setAncestor = findAncestorData(qn, ['.set-card', '.set', '.bank-set']);
-        if (setAncestor && setAncestor.dataset && setAncestor.dataset.year) year = String(setAncestor.dataset.year);
-      }
-      if (!year) {
-        const yearAncestor = findAncestorData(qn, ['.year-block', '.bank-year']);
-        if (yearAncestor && yearAncestor.dataset && yearAncestor.dataset.year) year = String(yearAncestor.dataset.year);
-      }
-      // As last resort try to parse a year number from ancestor header text
-      if (!year) {
-        const yAnc = findAncestorData(qn, ['.year-block', '.bank-year']);
-        if (yAnc) {
-          const m = (yAnc.textContent || '').match(/\b(20\d{2})\b/);
-          if (m) year = m[1];
-        }
-      }
-
-      const yearOk = (selYear === 'ALL') || (year && String(year) === String(selYear));
-      const levelOk = (selLevel === 'ALL') || (difficulty === selLevel);
-      const textOk = (!query) || (qText && qText.includes(query));
-
-      const visible = yearOk && levelOk && textOk;
-      qn.classList.toggle('hidden', !visible);
-      if (visible) matchCount++;
-    });
-
-    // Then hide any set containers with no visible questions (non-destructive)
-    const setSelectors = ['.set-card', '.set', '.bank-set'];
-    const setNodes = new Set();
-    setSelectors.forEach(sel => container.querySelectorAll(sel).forEach(n => setNodes.add(n)));
-    setNodes.forEach(setNode => {
-      // consider a question node to belong to this set if it is a descendant
-      const visibleDesc = setNode.querySelectorAll('.question-card:not(.hidden), .question:not(.hidden), [data-pos]:not(.hidden)');
-      const anyVisible = visibleDesc && visibleDesc.length > 0;
-      setNode.classList.toggle('hidden', !anyVisible);
-      // If the set has a small element showing number of matched questions and you want to update it,
-      // you can add code here — currently we do not modify text content to keep visuals unchanged.
-    });
-
-    // Hide year wrappers with no visible sets
-    const yearSelectors = ['.year-block', '.bank-year', '.year'];
-    const yearNodes = new Set();
-    yearSelectors.forEach(sel => container.querySelectorAll(sel).forEach(n => yearNodes.add(n)));
-    yearNodes.forEach(yearNode => {
-      const visibleSets = yearNode.querySelectorAll('.set-card:not(.hidden), .set:not(.hidden), .bank-set:not(.hidden)');
-      const anyVisible = visibleSets && visibleSets.length > 0;
-      yearNode.classList.toggle('hidden', !anyVisible);
-    });
-
-    badge.textContent = `Showing: ${matchCount} Question${matchCount !== 1 ? 's' : ''}`;
-  };
-
-  // Optionally, wire up an initial call on DOMContentLoaded so count is updated initially.
-  document.addEventListener('DOMContentLoaded', () => {
-    // call once to set up initial counts/visibility if there is a search default
-    try { window.filterQuestionBank(); } catch (e) { /* ignore */ }
-  });
-})();
-
-// Global filter function (used by onkeyup/onchange)
 function filterQuestionBank() {
-  const queryEl = document.getElementById('bank-search-input');
-  const yearSel = document.getElementById('bank-year-select');
-  const levelSel = document.getElementById('bank-level-select');
-  const container = document.getElementById('bank-year-containers');
-  const badge = document.getElementById('bank-count-badge');
+    const searchText = document.getElementById('bank-search-input').value.toLowerCase().trim();
+    const selectedYear = document.getElementById('bank-year-select').value;
+    const selectedLevel = document.getElementById('bank-level-select').value;
 
-  if (!container || !queryEl || !yearSel || !levelSel || !badge) return;
+    let visibleCount = 0;
+    const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
 
-  const query = (queryEl.value || '').trim().toLowerCase();
-  const selYear = yearSel.value || 'ALL';
-  const selLevel = levelSel.value || 'ALL';
+    years.forEach(yr => {
+        const yearBlock = document.getElementById(`bank-year-block-${yr}`);
+        if (!yearBlock) return;
 
-  const allQuestionCards = container.querySelectorAll('.question-card');
-  // Show all when nothing searched and filters ALL
-  const showAll = !query && selYear === 'ALL' && selLevel === 'ALL';
-  let matchCount = 0;
+        // Year filter
+        if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
+            yearBlock.classList.add('hidden');
+            return;
+        }
 
-  if (showAll) {
-    allQuestionCards.forEach(c => c.classList.remove('hidden'));
-    // ensure sets and years shown
-    container.querySelectorAll('.set-card').forEach(s => s.classList.remove('hidden'));
-    container.querySelectorAll('.year-block').forEach(y => y.classList.remove('hidden'));
-    badge.textContent = `Showing: ${allQuestionCards.length} Questions`;
-    return;
-  }
+        let yearHasMatch = false;
+        const body = document.getElementById(`accordion-body-${yr}`);
+        const setCards = body ? body.querySelectorAll('.bg-slate-900\\/80.rounded-xl') : [];
 
-  allQuestionCards.forEach(card => {
-    const qText = (card.querySelector('.question-text')?.textContent || '').toLowerCase();
-    const qYear = String(card.dataset.year || '');
-    const qPos = Number(card.dataset.pos || 0);
-    const difficulty = questionDifficultyFromIndex(qPos);
+        setCards.forEach(setCard => {
+            const questionCards = setCard.querySelectorAll('[data-question-id]');
+            let setVisible = 0;
 
-    const yearOk = (selYear === 'ALL' || qYear === String(selYear));
-    const levelOk = (selLevel === 'ALL' || difficulty === selLevel);
-    const textOk = (!query || qText.includes(query));
+            questionCards.forEach(card => {
+                const qText = card.getAttribute('data-question-text') || '';
+                const qLevel = card.getAttribute('data-level') || '';
 
-    const visible = yearOk && levelOk && textOk;
-    card.classList.toggle('hidden', !visible);
-    if (visible) matchCount++;
-  });
+                const textMatch = (searchText === '' || qText.includes(searchText));
+                const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
 
-  // Hide sets with zero visible questions
-  container.querySelectorAll('.set-card').forEach(setCard => {
-    const visibleQuestions = setCard.querySelectorAll('.question-card:not(.hidden)').length;
-    setCard.classList.toggle('hidden', visibleQuestions === 0);
-    // also update the set second-row number to show number of matched questions (if you want)
-    const secondRow = setCard.querySelector('div > div > div.text-xs'); // not guaranteed, but we keep label intact
-    // skip modifying if not needed
-  });
+                if (textMatch && levelMatch) {
+                    card.classList.remove('hidden');
+                    setVisible++;
+                    yearHasMatch = true;
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
 
-  // Hide years with zero visible sets
-  container.querySelectorAll('.year-block').forEach(yearBlock => {
-    const visibleSets = yearBlock.querySelectorAll('.set-card:not(.hidden)').length;
-    yearBlock.classList.toggle('hidden', visibleSets === 0);
-    // Optionally collapse years on search start:
-    // if (query) yearBlock.querySelector('.sets-container')?.classList.add('hidden');
-  });
+            // Hide whole set if nothing matches + update the count text
+            if (setVisible === 0) {
+                setCard.classList.add('hidden');
+            } else {
+                setCard.classList.remove('hidden');
+                // Update the "X Questions" span
+                const countSpan = setCard.querySelector('span.text-\\[11px\\].text-slate-400');
+                if (countSpan) {
+                    countSpan.textContent = `${setVisible} Question${setVisible !== 1 ? 's' : ''}`;
+                }
+            }
+        });
 
-  badge.textContent = `Showing: ${matchCount} Question${matchCount !== 1 ? 's' : ''}`;
+        if (yearHasMatch) {
+            yearBlock.classList.remove('hidden');
+            // Auto-open accordion when filtering
+            if (searchText !== '' || selectedLevel !== 'ALL' || selectedYear !== 'ALL') {
+                const bodyEl = document.getElementById(`accordion-body-${yr}`);
+                const icon = document.getElementById(`accordion-icon-${yr}`);
+                if (bodyEl) bodyEl.classList.remove('hidden');
+                if (icon) icon.classList.add('rotate-180');
+            }
+        } else {
+            yearBlock.classList.add('hidden');
+        }
+    });
+
+    updateBankCountBadge(visibleCount);
 }
 
-// Make sure we render the bank once DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  renderFullBank();
-  // ensure the initial badge shows total count
-  const container = document.getElementById('bank-year-containers');
-  const badge = document.getElementById('bank-count-badge');
-  if (container && badge) {
-    const total = container.querySelectorAll('.question-card').length;
-    badge.textContent = `Showing: ${total} Questions`;
-  }
-});
+
         function updateBankCountBadge(count) {
             document.getElementById('bank-count-badge').innerText = `Showing: ${count} Questions`;
         }
