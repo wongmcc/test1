@@ -3370,6 +3370,185 @@ function renderFullBank() {
   });
 }
 
+// Non-destructive DOM-only filter. Does NOT rebuild DOM or change styling/event handlers.
+(function () {
+  // helper: map Q position -> difficulty
+  function questionDifficultyFromIndex(pos) {
+    if (pos >= 1 && pos <= 3) return 'easy';
+    if (pos >= 4 && pos <= 6) return 'medium';
+    return 'challenging';
+  }
+
+  // helper: try to extract numeric pos from dataset or from inner text like "Q3"
+  function extractPos(el) {
+    if (!el) return 0;
+    const ds = el.dataset && el.dataset.pos;
+    if (ds) return Number(ds) || 0;
+    // search for "Q<number>" in element text or in a child
+    const text = (el.textContent || '').trim();
+    const m = text.match(/Q\s?(\d{1,2})/i);
+    if (m) return Number(m[1]) || 0;
+    // attempt to find child with Q#
+    const qChild = el.querySelector && el.querySelector('[data-pos], .qnum, .q-num, .q-number, .q-no');
+    if (qChild && qChild.dataset && qChild.dataset.pos) return Number(qChild.dataset.pos) || 0;
+    if (qChild) {
+      const mm = (qChild.textContent || '').match(/Q\s?(\d{1,2})/i);
+      if (mm) return Number(mm[1]) || 0;
+    }
+    return 0;
+  }
+
+  // helper: extract question text (normalize)
+  function extractQuestionText(el) {
+    if (!el) return '';
+    // common internal class names to try
+    const selectors = ['.question-text', '.q-text', '.qbody', '.question-body', '.text', 'p', 'span', 'div'];
+    for (const sel of selectors) {
+      const found = el.querySelector && el.querySelector(sel);
+      if (found && (found.textContent || '').trim()) return found.textContent.trim();
+    }
+    // fallback to element's own text
+    return (el.textContent || '').trim();
+  }
+
+  // helper: find ancestor set/year wrappers and get dataset.year if available
+  function findAncestorData(el, selectorCandidates) {
+    let node = el;
+    while (node && node !== document.documentElement) {
+      for (const sel of selectorCandidates) {
+        if (node.matches && node.matches(sel)) return node;
+      }
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  // The global function used by the UI (onkeyup/onchange)
+  window.filterQuestionBank = function filterQuestionBankDomOnly() {
+    const container = document.getElementById('bank-year-containers');
+    const searchEl = document.getElementById('bank-search-input');
+    const yearSel = document.getElementById('bank-year-select');
+    const levelSel = document.getElementById('bank-level-select');
+    const badge = document.getElementById('bank-count-badge');
+
+    if (!container || !searchEl || !yearSel || !levelSel || !badge) {
+      // If required controls or container not present, do nothing (safe)
+      console.warn('filterQuestionBank: required DOM elements not found.');
+      return;
+    }
+
+    const query = (searchEl.value || '').trim().toLowerCase();
+    const selYear = (yearSel.value || 'ALL');
+    const selLevel = (levelSel.value || 'ALL');
+
+    // Try multiple selectors to find question nodes without assuming DOM structure
+    const candidateSelectors = [
+      '.question-card',
+      '.q-card',
+      '.bank-question',
+      '.question',
+      '[data-pos]',
+      '.bank-item'
+    ];
+    const candidates = new Set();
+    candidateSelectors.forEach(sel => {
+      container.querySelectorAll(sel).forEach(n => candidates.add(n));
+    });
+    // If none matched by the above, as a fallback take any element that looks like a question row:
+    if (candidates.size === 0) {
+      // pick direct children of sets or container that are likely cards
+      container.querySelectorAll(':scope > *').forEach(n => candidates.add(n));
+    }
+
+    const questionNodes = Array.from(candidates);
+
+    if (questionNodes.length === 0) {
+      console.warn('filterQuestionBank: no question-like nodes found — nothing to filter.');
+      badge.textContent = 'Showing: 0 Questions';
+      return;
+    }
+
+    const showAll = !query && selYear === 'ALL' && selLevel === 'ALL';
+    let matchCount = 0;
+
+    if (showAll) {
+      // reveal everything
+      questionNodes.forEach(qn => qn.classList.remove('hidden'));
+      // reveal set/year wrappers if present
+      container.querySelectorAll('.set-card, .set, .bank-set').forEach(s => s.classList.remove('hidden'));
+      container.querySelectorAll('.year-block, .bank-year').forEach(y => y.classList.remove('hidden'));
+      badge.textContent = `Showing: ${questionNodes.length} Questions`;
+      return;
+    }
+
+    // First, toggle each question visibility
+    questionNodes.forEach(qn => {
+      const qText = extractQuestionText(qn).toLowerCase();
+      const pos = extractPos(qn);
+      const difficulty = questionDifficultyFromIndex(pos);
+
+      // determine year: prefer dataset on question, then ancestor .set-card or .year-block
+      let year = qn.dataset && qn.dataset.year ? String(qn.dataset.year) : null;
+      if (!year) {
+        // check ancestor set-card
+        const setAncestor = findAncestorData(qn, ['.set-card', '.set', '.bank-set']);
+        if (setAncestor && setAncestor.dataset && setAncestor.dataset.year) year = String(setAncestor.dataset.year);
+      }
+      if (!year) {
+        const yearAncestor = findAncestorData(qn, ['.year-block', '.bank-year']);
+        if (yearAncestor && yearAncestor.dataset && yearAncestor.dataset.year) year = String(yearAncestor.dataset.year);
+      }
+      // As last resort try to parse a year number from ancestor header text
+      if (!year) {
+        const yAnc = findAncestorData(qn, ['.year-block', '.bank-year']);
+        if (yAnc) {
+          const m = (yAnc.textContent || '').match(/\b(20\d{2})\b/);
+          if (m) year = m[1];
+        }
+      }
+
+      const yearOk = (selYear === 'ALL') || (year && String(year) === String(selYear));
+      const levelOk = (selLevel === 'ALL') || (difficulty === selLevel);
+      const textOk = (!query) || (qText && qText.includes(query));
+
+      const visible = yearOk && levelOk && textOk;
+      qn.classList.toggle('hidden', !visible);
+      if (visible) matchCount++;
+    });
+
+    // Then hide any set containers with no visible questions (non-destructive)
+    const setSelectors = ['.set-card', '.set', '.bank-set'];
+    const setNodes = new Set();
+    setSelectors.forEach(sel => container.querySelectorAll(sel).forEach(n => setNodes.add(n)));
+    setNodes.forEach(setNode => {
+      // consider a question node to belong to this set if it is a descendant
+      const visibleDesc = setNode.querySelectorAll('.question-card:not(.hidden), .question:not(.hidden), [data-pos]:not(.hidden)');
+      const anyVisible = visibleDesc && visibleDesc.length > 0;
+      setNode.classList.toggle('hidden', !anyVisible);
+      // If the set has a small element showing number of matched questions and you want to update it,
+      // you can add code here — currently we do not modify text content to keep visuals unchanged.
+    });
+
+    // Hide year wrappers with no visible sets
+    const yearSelectors = ['.year-block', '.bank-year', '.year'];
+    const yearNodes = new Set();
+    yearSelectors.forEach(sel => container.querySelectorAll(sel).forEach(n => yearNodes.add(n)));
+    yearNodes.forEach(yearNode => {
+      const visibleSets = yearNode.querySelectorAll('.set-card:not(.hidden), .set:not(.hidden), .bank-set:not(.hidden)');
+      const anyVisible = visibleSets && visibleSets.length > 0;
+      yearNode.classList.toggle('hidden', !anyVisible);
+    });
+
+    badge.textContent = `Showing: ${matchCount} Question${matchCount !== 1 ? 's' : ''}`;
+  };
+
+  // Optionally, wire up an initial call on DOMContentLoaded so count is updated initially.
+  document.addEventListener('DOMContentLoaded', () => {
+    // call once to set up initial counts/visibility if there is a search default
+    try { window.filterQuestionBank(); } catch (e) { /* ignore */ }
+  });
+})();
+
 // Global filter function (used by onkeyup/onchange)
 function filterQuestionBank() {
   const queryEl = document.getElementById('bank-search-input');
