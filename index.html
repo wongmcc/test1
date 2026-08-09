@@ -156,33 +156,24 @@
             <!-- Question Display Card & Timer Split View -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
-                <!-- LEFT COLUMN: Question + Vocabulary -->
+                <!-- LEFT: Question + Vocabulary -->
                 <div class="lg:col-span-7 flex flex-col space-y-6">
                     
                     <!-- Question Box -->
-                    <div id="question-card" class="bg-slate-800/90 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+                    <div id="question-card" class="bg-slate-800/90 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden flex flex-col justify-between min-h-[200px]">
                         <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
                         <div>
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                                 <div class="flex items-center space-x-2">
-                                    <span id="q-meta-tag" class="px-3 py-1 bg-brand-500/20 text-brand-400 border border-brand-500/30 rounded-full text-xs font-bold uppercase tracking-wider">
-                                        Ready to Practice
-                                    </span>
-                                    <span id="q-level-tag" class="px-3 py-1 bg-slate-700 text-slate-300 rounded-full text-xs font-semibold">
-                                        Q1-8
-                                    </span>
+                                    <span id="q-meta-tag" class="px-3 py-1 bg-brand-500/20 text-brand-400 border border-brand-500/30 rounded-full text-xs font-bold uppercase tracking-wider">Ready to Practice</span>
+                                    <span id="q-level-tag" class="px-3 py-1 bg-slate-700 text-slate-300 rounded-full text-xs font-semibold">Q1-8</span>
                                 </div>
-                                <span id="q-topic-tag" class="text-xs text-slate-400 font-medium italic">
-                                    Click draw button to start
-                                </span>
+                                <span id="q-topic-tag" class="text-xs text-slate-400 font-medium italic">Click draw button to start</span>
                             </div>
-
                             <p id="question-text" class="text-xl sm:text-2xl font-bold text-slate-100 leading-relaxed my-2">
                                 "Press 'Draw Random Question' above to select an authentic HKDSE exam question."
                             </p>
                         </div>
-
                         <div class="mt-6 pt-4 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
                             <span id="q-id-info" class="font-mono">ID: --</span>
                             <span class="flex items-center"><i class="fa-solid fa-check-circle text-brand-500 mr-1.5"></i>Official HKDSE Past Paper Question</span>
@@ -199,121 +190,165 @@
                             <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-md font-semibold">Level C1/C2</span>
                         </div>
                         <p class="text-xs text-slate-400 mb-4">Boost your response marks with these topic-specific key terms and expressions:</p>
-                        
                         <div id="vocab-list-container" class="space-y-3">
                             <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 text-sm italic text-center">
                                 Draw a question to generate topic-relevant vocabulary and phrases.
                             </div>
                         </div>
                     </div>
-
                 </div>
 
-                <!-- RIGHT COLUMN: Timer + Record + Structure -->
-                <div class="lg:col-span-5 flex flex-col space-y-6">
+                <!-- RIGHT: Combined Timer+Structure + Record + Feedback -->
+                <div class="lg:col-span-5 flex flex-col space-y-5">
                     
-                    <!-- Timer Card -->
-                    <div id="timer-card" class="bg-slate-800/90 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col items-center justify-center relative timer-glow transition-all duration-300">
-                        <span class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Individual Response Timer</span>
+                    <!-- Combined Timer + Structure -->
+                    <div id="timer-card" class="bg-slate-800/90 rounded-2xl p-5 border border-slate-700 shadow-xl relative timer-glow transition-all duration-300">
+                        <span class="text-xs font-bold uppercase tracking-widest text-slate-400 block text-center mb-1">Individual Response Timer</span>
                         
-                        <div class="relative my-4 flex items-center justify-center">
-                            <div class="text-6xl font-extrabold font-mono text-emerald-400 tracking-tight" id="timer-display">
-                                01:00
-                            </div>
+                        <div class="relative my-3 flex items-center justify-center">
+                            <div class="text-5xl font-extrabold font-mono text-emerald-400 tracking-tight" id="timer-display">01:00</div>
                         </div>
 
-                        <div id="active-phase-badge" class="px-4 py-1.5 rounded-full text-xs font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30 mb-5 text-center">
-                            Phase: 0s - 5s (Rephrase Question / Stance)
+                        <div id="active-phase-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30 mb-4 text-center mx-auto w-fit">
+                            Phase: 0s – 5s (Rephrase / Stance)
                         </div>
 
-                        <div class="flex items-center space-x-3 w-full">
-                            <button id="start-pause-btn" onclick="toggleTimer()" class="flex-1 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2">
+                        <div class="flex items-center space-x-2 w-full mb-4">
+                            <button id="start-pause-btn" onclick="toggleTimer()" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm">
                                 <i id="start-pause-icon" class="fa-solid fa-play"></i>
                                 <span id="start-pause-text">Start Timer</span>
                             </button>
-                            <button onclick="resetTimer()" class="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl transition-all">
+                            <button onclick="resetTimer()" class="px-3 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl transition-all">
                                 <i class="fa-solid fa-rotate-left"></i>
                             </button>
                         </div>
 
-                        <div class="w-full mt-6 space-y-1.5">
-                            <div class="flex justify-between text-[11px] font-semibold text-slate-400">
-                                <span>0s</span>
-                                <span>5s</span>
-                                <span>30s</span>
-                                <span>55s</span>
-                                <span>60s</span>
+                        <div class="w-full mb-4 space-y-1">
+                            <div class="flex justify-between text-[10px] font-semibold text-slate-400">
+                                <span>0s</span><span>5s</span><span>30s</span><span>55s</span><span>60s</span>
                             </div>
-                            <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-700/80 flex">
-                                <div id="phase-bar-1" class="h-full bg-blue-500 rounded-l transition-all duration-300" style="width: 8.33%;"></div>
-                                <div id="phase-bar-2" class="h-full bg-emerald-500 transition-all duration-300" style="width: 41.67%;"></div>
-                                <div id="phase-bar-3" class="h-full bg-amber-500 transition-all duration-300" style="width: 41.67%;"></div>
-                                <div id="phase-bar-4" class="h-full bg-purple-500 rounded-r transition-all duration-300" style="width: 8.33%;"></div>
+                            <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-700/80 flex">
+                                <div id="phase-bar-1" class="h-full bg-blue-500 rounded-l" style="width:8.33%"></div>
+                                <div id="phase-bar-2" class="h-full bg-emerald-500" style="width:41.67%"></div>
+                                <div id="phase-bar-3" class="h-full bg-amber-500" style="width:41.67%"></div>
+                                <div id="phase-bar-4" class="h-full bg-purple-500 rounded-r" style="width:8.33%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Always-visible Structure Blueprint -->
+                        <div class="space-y-1.5 text-xs border-t border-slate-700/60 pt-3">
+                            <div id="struct-step-1" class="p-2 rounded-lg bg-slate-900/80 border border-slate-700/50 flex items-start space-x-2 transition-all">
+                                <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 font-bold rounded text-[10px] whitespace-nowrap">0-5s</span>
+                                <div>
+                                    <p class="font-bold text-slate-200 text-[11px]">Rephrase & Stance</p>
+                                    <p class="text-slate-400 text-[10px]">Answer directly without repeating the question.</p>
+                                </div>
+                            </div>
+                            <div id="struct-step-2" class="p-2 rounded-lg bg-slate-900/80 border border-slate-700/50 flex items-start space-x-2 transition-all">
+                                <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 font-bold rounded text-[10px] whitespace-nowrap">5-30s</span>
+                                <div>
+                                    <p class="font-bold text-slate-200 text-[11px]">1st Point + Example</p>
+                                    <p class="text-slate-400 text-[10px]">Clear topic sentence + Hong Kong example.</p>
+                                </div>
+                            </div>
+                            <div id="struct-step-3" class="p-2 rounded-lg bg-slate-900/80 border border-slate-700/50 flex items-start space-x-2 transition-all">
+                                <span class="px-1.5 py-0.5 bg-amber-500/20 text-amber-400 font-bold rounded text-[10px] whitespace-nowrap">30-55s</span>
+                                <div>
+                                    <p class="font-bold text-slate-200 text-[11px]">2nd Point + Example</p>
+                                    <p class="text-slate-400 text-[10px]">Distinct second argument + details.</p>
+                                </div>
+                            </div>
+                            <div id="struct-step-4" class="p-2 rounded-lg bg-slate-900/80 border border-slate-700/50 flex items-start space-x-2 transition-all">
+                                <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 font-bold rounded text-[10px] whitespace-nowrap">55-60s</span>
+                                <div>
+                                    <p class="font-bold text-slate-200 text-[11px]">Brief Conclusion</p>
+                                    <p class="text-slate-400 text-[10px]">One concise closing sentence.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Audio Recorder -->
-                    <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 shadow-xl space-y-3">
+                    <!-- Record Box -->
+                    <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/60 shadow-xl space-y-3">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">
                                 <i class="fa-solid fa-microphone text-rose-400 mr-2"></i>Record & Self-Evaluate
                             </h3>
                             <span id="rec-status" class="text-[11px] text-slate-400">Idle</span>
                         </div>
-                        <div class="flex items-center space-x-3">
-                            <button id="rec-btn" onclick="toggleRecording()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5">
+                        <div class="flex items-center space-x-2">
+                            <button id="rec-btn" onclick="toggleRecording()" class="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5">
                                 <i class="fa-solid fa-circle"></i>
                                 <span id="rec-btn-text">Record Voice</span>
                             </button>
                             <audio id="audio-playback" controls class="h-8 flex-1 rounded-lg hidden"></audio>
                         </div>
+                        <button id="show-feedback-btn" onclick="showFeedbackPanel()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition hidden">
+                            <i class="fa-solid fa-clipboard-check mr-1.5"></i>Open Self-Evaluation
+                        </button>
                     </div>
 
-                    <!-- Structure Reminder -->
-                    <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700/60 shadow-xl space-y-3">
-                        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
-                            <span><i class="fa-solid fa-sitemap text-brand-400 mr-2"></i>Ideal 1-Minute Response Structure</span>
-                            <span class="text-[10px] bg-slate-700 px-2 py-0.5 rounded text-slate-300">HKDSE Scoring Standard</span>
-                        </h3>
+                    <!-- Feedback Panel (hidden by default) -->
+                    <div id="feedback-panel" class="bg-slate-800/90 rounded-2xl p-5 border border-indigo-500/40 shadow-xl space-y-4 hidden">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-indigo-300 flex items-center">
+                                <i class="fa-solid fa-star mr-2"></i>Self-Evaluation (4 Domains)
+                            </h3>
+                            <button onclick="hideFeedbackPanel()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <p class="text-[11px] text-slate-400">Listen to your recording, then rate yourself honestly. Aim for Band 5 habits.</p>
 
-                        <div class="space-y-2 text-xs">
-                            <div id="struct-step-1" class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/50 flex items-start space-x-3 transition-all">
-                                <span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 font-bold rounded text-[11px] whitespace-nowrap">0 - 5s</span>
-                                <div>
-                                    <p class="font-bold text-slate-200">Rephrase Question & State Stance</p>
-                                    <p class="text-slate-400 text-[11px]">Directly answer the question without repeating exact wording.</p>
+                        <div class="space-y-3 text-xs" id="feedback-domains">
+                            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-700">
+                                <p class="font-bold text-slate-200 mb-1">1. Pronunciation & Delivery</p>
+                                <p class="text-slate-400 text-[10px] mb-2">Clarity, intonation, pace, fluency</p>
+                                <div class="flex gap-1" data-domain="pronunciation">
+                                    <button onclick="setRating(this,1)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">1</button>
+                                    <button onclick="setRating(this,2)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">2</button>
+                                    <button onclick="setRating(this,3)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">3</button>
+                                    <button onclick="setRating(this,4)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">4</button>
+                                    <button onclick="setRating(this,5)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">5</button>
                                 </div>
                             </div>
-
-                            <div id="struct-step-2" class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/50 flex items-start space-x-3 transition-all">
-                                <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 font-bold rounded text-[11px] whitespace-nowrap">20 - 25s</span>
-                                <div>
-                                    <p class="font-bold text-slate-200">1st Main Point + Concrete Example</p>
-                                    <p class="text-slate-400 text-[11px]">Clear topic sentence, elaboration, and a real-life Hong Kong example.</p>
+                            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-700">
+                                <p class="font-bold text-slate-200 mb-1">2. Communication Strategies</p>
+                                <p class="text-slate-400 text-[10px] mb-2">Signposting, expanding, handling hesitation</p>
+                                <div class="flex gap-1" data-domain="strategies">
+                                    <button onclick="setRating(this,1)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">1</button>
+                                    <button onclick="setRating(this,2)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">2</button>
+                                    <button onclick="setRating(this,3)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">3</button>
+                                    <button onclick="setRating(this,4)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">4</button>
+                                    <button onclick="setRating(this,5)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">5</button>
                                 </div>
                             </div>
-
-                            <div id="struct-step-3" class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/50 flex items-start space-x-3 transition-all">
-                                <span class="px-2 py-0.5 bg-amber-500/20 text-amber-400 font-bold rounded text-[11px] whitespace-nowrap">20 - 25s</span>
-                                <div>
-                                    <p class="font-bold text-slate-200">2nd Main Point + Concrete Example</p>
-                                    <p class="text-slate-400 text-[11px]">A distinct second argument (or counter-aspect) with specific details.</p>
+                            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-700">
+                                <p class="font-bold text-slate-200 mb-1">3. Vocabulary & Language Patterns</p>
+                                <p class="text-slate-400 text-[10px] mb-2">Range, precision, topic words, grammar</p>
+                                <div class="flex gap-1" data-domain="vocabulary">
+                                    <button onclick="setRating(this,1)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">1</button>
+                                    <button onclick="setRating(this,2)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">2</button>
+                                    <button onclick="setRating(this,3)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">3</button>
+                                    <button onclick="setRating(this,4)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">4</button>
+                                    <button onclick="setRating(this,5)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">5</button>
                                 </div>
                             </div>
-
-                            <div id="struct-step-4" class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/50 flex items-start space-x-3 transition-all">
-                                <span class="px-2 py-0.5 bg-purple-500/20 text-purple-400 font-bold rounded text-[11px] whitespace-nowrap">5s</span>
-                                <div>
-                                    <p class="font-bold text-slate-200">Brief Conclusion</p>
-                                    <p class="text-slate-400 text-[11px]">Wrap up smoothly in one concise closing sentence.</p>
+                            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-700">
+                                <p class="font-bold text-slate-200 mb-1">4. Ideas & Organisation</p>
+                                <p class="text-slate-400 text-[10px] mb-2">Stance, two points, examples, conclusion</p>
+                                <div class="flex gap-1" data-domain="ideas">
+                                    <button onclick="setRating(this,1)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">1</button>
+                                    <button onclick="setRating(this,2)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">2</button>
+                                    <button onclick="setRating(this,3)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">3</button>
+                                    <button onclick="setRating(this,4)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">4</button>
+                                    <button onclick="setRating(this,5)" class="rating-btn flex-1 py-1 rounded bg-slate-700 text-[10px]">5</button>
                                 </div>
                             </div>
                         </div>
+                        <div id="feedback-summary" class="text-center text-sm font-bold text-indigo-300 hidden">
+                            Average: <span id="avg-score">–</span> / 5
+                        </div>
                     </div>
-
                 </div>
-
             </div>
 
         </section>
@@ -379,7 +414,7 @@
                         <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-700">
                             <span class="font-bold text-emerald-400 block mb-1">1. Stance & Introduction</span>
                             <ul class="list-disc list-inside text-slate-300 space-y-1">
-                                <li>"When it comes to [topic], I firmly believe that..."</li>
+                                stroke="currentColor"<li>"When it comes to [topic], I firmly believe that..."</li>
                                 <li>"Speaking personally, I would definitely advocate for..."</li>
                                 <li>"To address this question directly, I am inclined to think that..."</li>
                             </ul>
@@ -2518,20 +2553,25 @@
             ]
         };
 
-        // Fallback or Context Vocabulary Matcher
+        // Improved topic-aware vocabulary matcher
         function getVocabForQuestion(questionText, topicText) {
             const combined = (questionText + ' ' + topicText).toLowerCase();
-            if (combined.match(/tech|app|phone|online|internet|computer|robot|game|cyber|3d|drone|screen/)) {
+
+            // More specific matching first
+            if (combined.match(/tech|app|phone|smartphone|online|internet|computer|robot|game|cyber|3d|drone|screen|youtube|social media|facebook|selfie|translation/)) {
                 return VOCAB_DATABASE.technology;
-            } else if (combined.match(/school|learn|study|subject|teacher|curriculum|exam|university|class|education/)) {
-                return VOCAB_DATABASE.education;
-            } else if (combined.match(/job|work|career|intern|boss|salary|employee|company|profession/)) {
-                return VOCAB_DATABASE.career;
-            } else if (combined.match(/environment|dolphin|recycle|upcycle|farm|nature|litter|waste|wild/)) {
-                return VOCAB_DATABASE.environment;
-            } else {
-                return VOCAB_DATABASE.society;
             }
+            if (combined.match(/school|learn|study|subject|teacher|curriculum|exam|university|class|education|homework|textbook|elective|stem|coding|kindergarten/)) {
+                return VOCAB_DATABASE.education;
+            }
+            if (combined.match(/job|work|career|intern|boss|salary|employee|company|profession|apprentice|employment|summer job|firefighter|police/)) {
+                return VOCAB_DATABASE.career;
+            }
+            if (combined.match(/environment|dolphin|recycle|upcycle|farm|nature|litter|waste|wild|boar|snake|hiking|countryside|carbon|eco/)) {
+                return VOCAB_DATABASE.environment;
+            }
+            // Fallback society covers most other topics (festivals, food, family, tourism, etc.)
+            return VOCAB_DATABASE.society;
         }
 
         let currentQuestion = null;
@@ -2654,7 +2694,12 @@
             isTimerRunning = true;
             document.getElementById('start-pause-icon').className = 'fa-solid fa-pause';
             document.getElementById('start-pause-text').innerText = 'Pause Timer';
-            document.getElementById('start-pause-btn').className = 'flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2';
+            document.getElementById('start-pause-btn').className = 'flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm';
+
+            // Also start recording automatically
+            if (!isRecording) {
+                toggleRecording();
+            }
 
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -2748,7 +2793,11 @@
 
             document.getElementById('start-pause-icon').className = 'fa-solid fa-play';
             document.getElementById('start-pause-text').innerText = 'Start Again';
-            document.getElementById('start-pause-btn').className = 'flex-1 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2';
+            document.getElementById('start-pause-btn').className = 'flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm';
+
+            // Show self-evaluation button
+            const fbBtn = document.getElementById('show-feedback-btn');
+            if (fbBtn) fbBtn.classList.remove('hidden');
 
             // Audio beep notification using Web Audio API
             playCompletionBeep();
@@ -2806,10 +2855,13 @@
                     mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 }
                 isRecording = false;
-                document.getElementById('rec-btn').className = 'px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5';
+                document.getElementById('rec-btn').className = 'px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5';
                 document.getElementById('rec-btn-text').innerText = 'Re-record';
                 document.getElementById('rec-status').innerText = 'Recorded Ready';
                 document.getElementById('rec-status').className = 'text-[11px] text-emerald-400 font-bold';
+                // Reveal self-evaluation button
+                const fbBtn = document.getElementById('show-feedback-btn');
+                if (fbBtn) fbBtn.classList.remove('hidden');
             }
         }
 
@@ -2925,81 +2977,77 @@
         }
 
 function filterQuestionBank() {
-            const searchText = (document.getElementById('bank-search-input')?.value || '').toLowerCase().trim();
-            const selectedYear = document.getElementById('bank-year-select')?.value || 'ALL';
-            const selectedLevel = document.getElementById('bank-level-select')?.value || 'ALL';
+    const searchText = document.getElementById('bank-search-input').value.toLowerCase().trim();
+    const selectedYear = document.getElementById('bank-year-select').value;
+    const selectedLevel = document.getElementById('bank-level-select').value;
 
-            let visibleCount = 0;
-            const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
+    let visibleCount = 0;
+    const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
 
-            years.forEach(yr => {
-                const yearBlock = document.getElementById(`bank-year-block-${yr}`);
-                if (!yearBlock) return;
+    years.forEach(yr => {
+        const yearBlock = document.getElementById(`bank-year-block-${yr}`);
+        if (!yearBlock) return;
 
-                if (selectedYear !== 'ALL' && selectedYear !== String(yr)) {
-                    yearBlock.classList.add('hidden');
-                    return;
-                }
+        // Year filter
+        if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
+            yearBlock.classList.add('hidden');
+            return;
+        }
 
-                let yearHasMatch = false;
-                const body = document.getElementById(`accordion-body-${yr}`);
-                if (!body) return;
+        let yearHasMatch = false;
+        const body = document.getElementById(`accordion-body-${yr}`);
+        const setCards = body ? body.querySelectorAll('.bg-slate-900\\/80.rounded-xl') : [];
 
-                // Find all set cards inside this year (more robust selector)
-                const setCards = body.querySelectorAll('.bg-slate-900\\/80, [class*="bg-slate-900"]');
+        setCards.forEach(setCard => {
+            const questionCards = setCard.querySelectorAll('[data-question-id]');
+            let setVisible = 0;
 
-                setCards.forEach(setCard => {
-                    // Only process actual set cards (ones that contain question cards)
-                    const questionCards = setCard.querySelectorAll('[data-question-id]');
-                    if (questionCards.length === 0) return;
+            questionCards.forEach(card => {
+                const qText = card.getAttribute('data-question-text') || '';
+                const qLevel = card.getAttribute('data-level') || '';
 
-                    let setVisible = 0;
+                const textMatch = (searchText === '' || qText.includes(searchText));
+                const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
 
-                    questionCards.forEach(card => {
-                        const qText = (card.getAttribute('data-question-text') || '').toLowerCase();
-                        const qLevel = card.getAttribute('data-level') || '';
-
-                        const textMatch = !searchText || qText.includes(searchText);
-                        const levelMatch = selectedLevel === 'ALL' || qLevel === selectedLevel;
-
-                        if (textMatch && levelMatch) {
-                            card.classList.remove('hidden');
-                            setVisible++;
-                            yearHasMatch = true;
-                            visibleCount++;
-                        } else {
-                            card.classList.add('hidden');
-                        }
-                    });
-
-                    // Hide / show the whole set card
-                    if (setVisible === 0) {
-                        setCard.classList.add('hidden');
-                    } else {
-                        setCard.classList.remove('hidden');
-                        // Update the count text if present
-                        const countSpan = setCard.querySelector('.text-\\[11px\\].text-slate-400, span.text-slate-400');
-                        if (countSpan && countSpan.textContent.includes('Question')) {
-                            countSpan.textContent = `${setVisible} Question${setVisible !== 1 ? 's' : ''}`;
-                        }
-                    }
-                });
-
-                if (yearHasMatch) {
-                    yearBlock.classList.remove('hidden');
-                    // Auto-open accordion when searching / filtering
-                    if (searchText || selectedLevel !== 'ALL' || selectedYear !== 'ALL') {
-                        body.classList.remove('hidden');
-                        const icon = document.getElementById(`accordion-icon-${yr}`);
-                        if (icon) icon.classList.add('rotate-180');
-                    }
+                if (textMatch && levelMatch) {
+                    card.classList.remove('hidden');
+                    setVisible++;
+                    yearHasMatch = true;
+                    visibleCount++;
                 } else {
-                    yearBlock.classList.add('hidden');
+                    card.classList.add('hidden');
                 }
             });
 
-            updateBankCountBadge(visibleCount);
+            // Hide whole set if nothing matches + update the count text
+            if (setVisible === 0) {
+                setCard.classList.add('hidden');
+            } else {
+                setCard.classList.remove('hidden');
+                // Update the "X Questions" span
+                const countSpan = setCard.querySelector('span.text-\\[11px\\].text-slate-400');
+                if (countSpan) {
+                    countSpan.textContent = `${setVisible} Question${setVisible !== 1 ? 's' : ''}`;
+                }
+            }
+        });
+
+        if (yearHasMatch) {
+            yearBlock.classList.remove('hidden');
+            // Auto-open accordion when filtering
+            if (searchText !== '' || selectedLevel !== 'ALL' || selectedYear !== 'ALL') {
+                const bodyEl = document.getElementById(`accordion-body-${yr}`);
+                const icon = document.getElementById(`accordion-icon-${yr}`);
+                if (bodyEl) bodyEl.classList.remove('hidden');
+                if (icon) icon.classList.add('rotate-180');
+            }
+        } else {
+            yearBlock.classList.add('hidden');
         }
+    });
+
+    updateBankCountBadge(visibleCount);
+}
 
 
         function updateBankCountBadge(count) {
@@ -3037,6 +3085,50 @@ function filterQuestionBank() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
+
+
+        // ===== Feedback Panel Functions =====
+        const ratings = { pronunciation: 0, strategies: 0, vocabulary: 0, ideas: 0 };
+
+        function setRating(btn, value) {
+            const domain = btn.parentElement.dataset.domain;
+            ratings[domain] = value;
+            // visual update
+            btn.parentElement.querySelectorAll('.rating-btn').forEach((b, i) => {
+                if (i + 1 <= value) {
+                    b.classList.remove('bg-slate-700');
+                    b.classList.add('bg-indigo-500', 'text-white');
+                } else {
+                    b.classList.add('bg-slate-700');
+                    b.classList.remove('bg-indigo-500', 'text-white');
+                }
+            });
+            updateFeedbackAverage();
+        }
+
+        function updateFeedbackAverage() {
+            const vals = Object.values(ratings).filter(v => v > 0);
+            const summary = document.getElementById('feedback-summary');
+            const avgEl = document.getElementById('avg-score');
+            if (vals.length === 4) {
+                const avg = (vals.reduce((a,b) => a+b, 0) / 4).toFixed(1);
+                avgEl.textContent = avg;
+                summary.classList.remove('hidden');
+            } else {
+                summary.classList.add('hidden');
+            }
+        }
+
+        function showFeedbackPanel() {
+            document.getElementById('feedback-panel').classList.remove('hidden');
+            document.getElementById('show-feedback-btn').classList.add('hidden');
+        }
+
+        function hideFeedbackPanel() {
+            document.getElementById('feedback-panel').classList.add('hidden');
+            document.getElementById('show-feedback-btn').classList.remove('hidden');
+        }
+
 
         window.onload = function () {
             // Draw a random question right on load
