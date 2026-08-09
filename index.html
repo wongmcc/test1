@@ -2935,58 +2935,77 @@
         }
 
 function filterQuestionBank() {
-            const searchText = document.getElementById('bank-search-input').value.toLowerCase().trim();
-            const selectedYear = document.getElementById('bank-year-select').value;
-            const selectedLevel = document.getElementById('bank-level-select').value;
+    const searchText = document.getElementById('bank-search-input').value.toLowerCase().trim();
+    const selectedYear = document.getElementById('bank-year-select').value;
+    const selectedLevel = document.getElementById('bank-level-select').value;
 
-            let visibleCount = 0;
-            const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
+    let visibleCount = 0;
+    const years = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
 
-            years.forEach(yr => {
-                const yearBlock = document.getElementById(`bank-year-block-${yr}`);
-                if (!yearBlock) return;
+    years.forEach(yr => {
+        const yearBlock = document.getElementById(`bank-year-block-${yr}`);
+        if (!yearBlock) return;
 
-                let yearHasMatch = false;
+        // Year filter
+        if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
+            yearBlock.classList.add('hidden');
+            return;
+        }
 
-                // Check year filter
-                if (selectedYear !== 'ALL' && selectedYear !== yr.toString()) {
-                    yearBlock.classList.add('hidden');
-                    return;
-                }
+        let yearHasMatch = false;
+        const body = document.getElementById(`accordion-body-${yr}`);
+        const setCards = body ? body.querySelectorAll('.bg-slate-900\\/80.rounded-xl') : [];
 
-                const questionCards = yearBlock.querySelectorAll('[data-question-id]');
-                questionCards.forEach(card => {
-                    const qText = card.getAttribute('data-question-text');
-                    const qLevel = card.getAttribute('data-level');
+        setCards.forEach(setCard => {
+            const questionCards = setCard.querySelectorAll('[data-question-id]');
+            let setVisible = 0;
 
-                    const textMatch = (searchText === '' || qText.includes(searchText));
-                    const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
+            questionCards.forEach(card => {
+                const qText = card.getAttribute('data-question-text') || '';
+                const qLevel = card.getAttribute('data-level') || '';
 
+                const textMatch = (searchText === '' || qText.includes(searchText));
+                const levelMatch = (selectedLevel === 'ALL' || qLevel === selectedLevel);
 
-                    if (textMatch && levelMatch) {
-                        card.classList.remove('hidden');
-                        yearHasMatch = true;
-                        visibleCount++;
-                    } else {
-                        card.classList.add('hidden');
-                    }
-                });
-
-                if (yearHasMatch) {
-                    yearBlock.classList.remove('hidden');
-                    // Automatically open accordion if searching
-                    if (searchText !== '' || selectedLevel !== 'ALL') {
-                        document.getElementById(`accordion-body-${yr}`).classList.remove('hidden');
-                        document.getElementById(`accordion-icon-${yr}`).classList.add('rotate-180');
-                    }
+                if (textMatch && levelMatch) {
+                    card.classList.remove('hidden');
+                    setVisible++;
+                    yearHasMatch = true;
+                    visibleCount++;
                 } else {
-                    yearBlock.classList.add('hidden');
+                    card.classList.add('hidden');
                 }
-                
             });
 
-            updateBankCountBadge(visibleCount);
+            // Hide whole set if nothing matches + update the count text
+            if (setVisible === 0) {
+                setCard.classList.add('hidden');
+            } else {
+                setCard.classList.remove('hidden');
+                // Update the "X Questions" span
+                const countSpan = setCard.querySelector('span.text-\\[11px\\].text-slate-400');
+                if (countSpan) {
+                    countSpan.textContent = `${setVisible} Question${setVisible !== 1 ? 's' : ''}`;
+                }
+            }
+        });
+
+        if (yearHasMatch) {
+            yearBlock.classList.remove('hidden');
+            // Auto-open accordion when filtering
+            if (searchText !== '' || selectedLevel !== 'ALL' || selectedYear !== 'ALL') {
+                const bodyEl = document.getElementById(`accordion-body-${yr}`);
+                const icon = document.getElementById(`accordion-icon-${yr}`);
+                if (bodyEl) bodyEl.classList.remove('hidden');
+                if (icon) icon.classList.add('rotate-180');
+            }
+        } else {
+            yearBlock.classList.add('hidden');
         }
+    });
+
+    updateBankCountBadge(visibleCount);
+}
 
 
         function updateBankCountBadge(count) {
