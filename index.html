@@ -155,11 +155,9 @@
 
             <!-- Question Display Card & Timer Split View -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                
-                <!-- LEFT: Question + Vocabulary -->
+
+                <!-- LEFT: Question only -->
                 <div class="lg:col-span-7 flex flex-col space-y-6">
-                    
-                    <!-- Question Box -->
                     <div id="question-card" class="bg-slate-800/90 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden flex flex-col justify-between min-h-[200px]">
                         <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-500/5 rounded-full blur-3xl pointer-events-none"></div>
                         <div>
@@ -179,40 +177,19 @@
                             <span class="flex items-center"><i class="fa-solid fa-check-circle text-brand-500 mr-1.5"></i>Official HKDSE Past Paper Question</span>
                         </div>
                     </div>
-
-                    <!-- Theme Vocabulary Box -->
-                    <div class="bg-slate-800/60 rounded-2xl p-6 border border-slate-700/60 shadow-xl">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-base font-bold text-slate-100 flex items-center">
-                                <i class="fa-solid fa-book-bookmark text-emerald-400 mr-2"></i>
-                                5 Theme-Based Vocabulary & Phrases
-                            </h3>
-                            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-md font-semibold">Level C1/C2</span>
-                        </div>
-                        <p class="text-xs text-slate-400 mb-4">Boost your response marks with these topic-specific key terms and expressions:</p>
-                        <div id="vocab-list-container" class="space-y-3">
-                            <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 text-sm italic text-center">
-                                Draw a question to generate topic-relevant vocabulary and phrases.
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- RIGHT: Combined Timer+Structure + Record + Feedback -->
+                <!-- RIGHT: Timer+Structure + Record + Feedback -->
                 <div class="lg:col-span-5 flex flex-col space-y-5">
-                    
                     <!-- Combined Timer + Structure -->
                     <div id="timer-card" class="bg-slate-800/90 rounded-2xl p-5 border border-slate-700 shadow-xl relative timer-glow transition-all duration-300">
                         <span class="text-xs font-bold uppercase tracking-widest text-slate-400 block text-center mb-1">Individual Response Timer</span>
-                        
                         <div class="relative my-3 flex items-center justify-center">
                             <div class="text-5xl font-extrabold font-mono text-emerald-400 tracking-tight" id="timer-display">01:00</div>
                         </div>
-
                         <div id="active-phase-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30 mb-4 text-center mx-auto w-fit">
                             Phase: 0s – 5s (Rephrase / Stance)
                         </div>
-
                         <div class="flex items-center space-x-2 w-full mb-4">
                             <button id="start-pause-btn" onclick="toggleTimer()" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm">
                                 <i id="start-pause-icon" class="fa-solid fa-play"></i>
@@ -222,7 +199,6 @@
                                 <i class="fa-solid fa-rotate-left"></i>
                             </button>
                         </div>
-
                         <div class="w-full mb-4 space-y-1">
                             <div class="flex justify-between text-[10px] font-semibold text-slate-400">
                                 <span>0s</span><span>5s</span><span>30s</span><span>55s</span><span>60s</span>
@@ -234,41 +210,27 @@
                                 <div id="phase-bar-4" class="h-full bg-purple-500 rounded-r" style="width:8.33%"></div>
                             </div>
                         </div>
-
-                        <!-- Always-visible Structure Blueprint -->
                         <div class="space-y-1.5 text-xs border-t border-slate-700/60 pt-3">
                             <div id="struct-step-1" class="p-2 rounded-lg bg-slate-900/80 border border-slate-700/50 flex items-start space-x-2 transition-all">
                                 <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 font-bold rounded text-[10px] whitespace-nowrap">0-5s</span>
-                                <div>
-                                    <p class="font-bold text-slate-200 text-[11px]">Rephrase & Stance</p>
-                                    <p class="text-slate-400 text-[10px]">Answer directly without repeating the question.</p>
-                                </div>
+                                <div><p class="font-bold text-slate-200 text-[11px]">Rephrase & Stance</p><p class="text-slate-400 text-[10px]">Answer directly without repeating the question.</p></div>
                             </div>
                             <div id="struct-step-2" class="p-2 rounded-lg bg-slate-900/80 border border-slate-700/50 flex items-start space-x-2 transition-all">
                                 <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 font-bold rounded text-[10px] whitespace-nowrap">5-30s</span>
-                                <div>
-                                    <p class="font-bold text-slate-200 text-[11px]">1st Point + Example</p>
-                                    <p class="text-slate-400 text-[10px]">Clear topic sentence + Hong Kong example.</p>
-                                </div>
+                                <div><p class="font-bold text-slate-200 text-[11px]">1st Point + Example</p><p class="text-slate-400 text-[10px]">Clear topic sentence + Hong Kong example.</p></div>
                             </div>
                             <div id="struct-step-3" class="p-2 rounded-lg bg-slate-900/80 border border-slate-700/50 flex items-start space-x-2 transition-all">
                                 <span class="px-1.5 py-0.5 bg-amber-500/20 text-amber-400 font-bold rounded text-[10px] whitespace-nowrap">30-55s</span>
-                                <div>
-                                    <p class="font-bold text-slate-200 text-[11px]">2nd Point + Example</p>
-                                    <p class="text-slate-400 text-[10px]">Distinct second argument + details.</p>
-                                </div>
+                                <div><p class="font-bold text-slate-200 text-[11px]">2nd Point + Example</p><p class="text-slate-400 text-[10px]">Distinct second argument + details.</p></div>
                             </div>
                             <div id="struct-step-4" class="p-2 rounded-lg bg-slate-900/80 border border-slate-700/50 flex items-start space-x-2 transition-all">
                                 <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 font-bold rounded text-[10px] whitespace-nowrap">55-60s</span>
-                                <div>
-                                    <p class="font-bold text-slate-200 text-[11px]">Brief Conclusion</p>
-                                    <p class="text-slate-400 text-[10px]">One concise closing sentence.</p>
-                                </div>
+                                <div><p class="font-bold text-slate-200 text-[11px]">Brief Conclusion</p><p class="text-slate-400 text-[10px]">One concise closing sentence.</p></div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Record Box -->
+
+                    <!-- Record -->
                     <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/60 shadow-xl space-y-3">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">
@@ -288,7 +250,7 @@
                         </button>
                     </div>
 
-                    <!-- Feedback Panel (hidden by default) -->
+                    <!-- Feedback Panel -->
                     <div id="feedback-panel" class="bg-slate-800/90 rounded-2xl p-5 border border-indigo-500/40 shadow-xl space-y-4 hidden">
                         <div class="flex items-center justify-between">
                             <h3 class="text-sm font-bold text-indigo-300 flex items-center">
@@ -297,7 +259,6 @@
                             <button onclick="hideFeedbackPanel()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                         <p class="text-[11px] text-slate-400">Listen to your recording, then rate yourself honestly. Aim for Band 5 habits.</p>
-
                         <div class="space-y-3 text-xs" id="feedback-domains">
                             <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-700">
                                 <p class="font-bold text-slate-200 mb-1">1. Pronunciation & Delivery</p>
@@ -347,6 +308,23 @@
                         <div id="feedback-summary" class="text-center text-sm font-bold text-indigo-300 hidden">
                             Average: <span id="avg-score">–</span> / 5
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vocabulary always at bottom (position 4/5) -->
+            <div class="bg-slate-800/60 rounded-2xl p-6 border border-slate-700/60 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-bold text-slate-100 flex items-center">
+                        <i class="fa-solid fa-book-bookmark text-emerald-400 mr-2"></i>
+                        5 Theme-Based Vocabulary & Phrases
+                    </h3>
+                    <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-md font-semibold">Level C1/C2</span>
+                </div>
+                <p class="text-xs text-slate-400 mb-4">Boost your response marks with these topic-specific key terms and expressions:</p>
+                <div id="vocab-list-container" class="space-y-3">
+                    <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 text-sm italic text-center">
+                        Draw a question to generate topic-relevant vocabulary and phrases.
                     </div>
                 </div>
             </div>
@@ -2553,25 +2531,20 @@
             ]
         };
 
-        // Improved topic-aware vocabulary matcher
+        // Fallback or Context Vocabulary Matcher
         function getVocabForQuestion(questionText, topicText) {
             const combined = (questionText + ' ' + topicText).toLowerCase();
-
-            // More specific matching first
-            if (combined.match(/tech|app|phone|smartphone|online|internet|computer|robot|game|cyber|3d|drone|screen|youtube|social media|facebook|selfie|translation/)) {
+            if (combined.match(/tech|app|phone|online|internet|computer|robot|game|cyber|3d|drone|screen/)) {
                 return VOCAB_DATABASE.technology;
-            }
-            if (combined.match(/school|learn|study|subject|teacher|curriculum|exam|university|class|education|homework|textbook|elective|stem|coding|kindergarten/)) {
+            } else if (combined.match(/school|learn|study|subject|teacher|curriculum|exam|university|class|education/)) {
                 return VOCAB_DATABASE.education;
-            }
-            if (combined.match(/job|work|career|intern|boss|salary|employee|company|profession|apprentice|employment|summer job|firefighter|police/)) {
+            } else if (combined.match(/job|work|career|intern|boss|salary|employee|company|profession/)) {
                 return VOCAB_DATABASE.career;
-            }
-            if (combined.match(/environment|dolphin|recycle|upcycle|farm|nature|litter|waste|wild|boar|snake|hiking|countryside|carbon|eco/)) {
+            } else if (combined.match(/environment|dolphin|recycle|upcycle|farm|nature|litter|waste|wild/)) {
                 return VOCAB_DATABASE.environment;
+            } else {
+                return VOCAB_DATABASE.society;
             }
-            // Fallback society covers most other topics (festivals, food, family, tourism, etc.)
-            return VOCAB_DATABASE.society;
         }
 
         let currentQuestion = null;
@@ -2694,12 +2667,7 @@
             isTimerRunning = true;
             document.getElementById('start-pause-icon').className = 'fa-solid fa-pause';
             document.getElementById('start-pause-text').innerText = 'Pause Timer';
-            document.getElementById('start-pause-btn').className = 'flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm';
-
-            // Also start recording automatically
-            if (!isRecording) {
-                toggleRecording();
-            }
+            document.getElementById('start-pause-btn').className = 'flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2';
 
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -2793,11 +2761,7 @@
 
             document.getElementById('start-pause-icon').className = 'fa-solid fa-play';
             document.getElementById('start-pause-text').innerText = 'Start Again';
-            document.getElementById('start-pause-btn').className = 'flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm';
-
-            // Show self-evaluation button
-            const fbBtn = document.getElementById('show-feedback-btn');
-            if (fbBtn) fbBtn.classList.remove('hidden');
+            document.getElementById('start-pause-btn').className = 'flex-1 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center space-x-2';
 
             // Audio beep notification using Web Audio API
             playCompletionBeep();
@@ -2855,13 +2819,10 @@
                     mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 }
                 isRecording = false;
-                document.getElementById('rec-btn').className = 'px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5';
+                document.getElementById('rec-btn').className = 'px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5';
                 document.getElementById('rec-btn-text').innerText = 'Re-record';
                 document.getElementById('rec-status').innerText = 'Recorded Ready';
                 document.getElementById('rec-status').className = 'text-[11px] text-emerald-400 font-bold';
-                // Reveal self-evaluation button
-                const fbBtn = document.getElementById('show-feedback-btn');
-                if (fbBtn) fbBtn.classList.remove('hidden');
             }
         }
 
@@ -3085,50 +3046,6 @@ function filterQuestionBank() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
-
-
-        // ===== Feedback Panel Functions =====
-        const ratings = { pronunciation: 0, strategies: 0, vocabulary: 0, ideas: 0 };
-
-        function setRating(btn, value) {
-            const domain = btn.parentElement.dataset.domain;
-            ratings[domain] = value;
-            // visual update
-            btn.parentElement.querySelectorAll('.rating-btn').forEach((b, i) => {
-                if (i + 1 <= value) {
-                    b.classList.remove('bg-slate-700');
-                    b.classList.add('bg-indigo-500', 'text-white');
-                } else {
-                    b.classList.add('bg-slate-700');
-                    b.classList.remove('bg-indigo-500', 'text-white');
-                }
-            });
-            updateFeedbackAverage();
-        }
-
-        function updateFeedbackAverage() {
-            const vals = Object.values(ratings).filter(v => v > 0);
-            const summary = document.getElementById('feedback-summary');
-            const avgEl = document.getElementById('avg-score');
-            if (vals.length === 4) {
-                const avg = (vals.reduce((a,b) => a+b, 0) / 4).toFixed(1);
-                avgEl.textContent = avg;
-                summary.classList.remove('hidden');
-            } else {
-                summary.classList.add('hidden');
-            }
-        }
-
-        function showFeedbackPanel() {
-            document.getElementById('feedback-panel').classList.remove('hidden');
-            document.getElementById('show-feedback-btn').classList.add('hidden');
-        }
-
-        function hideFeedbackPanel() {
-            document.getElementById('feedback-panel').classList.add('hidden');
-            document.getElementById('show-feedback-btn').classList.remove('hidden');
-        }
-
 
         window.onload = function () {
             // Draw a random question right on load
